@@ -2,7 +2,7 @@
 
 This repistory is aimed at reproducing the results of the paper "Network analysis of hepatocellular carcinoma liquid biopsies augmented by single-cell sequencing data" and is written in R. 
 
-The .Rmd files in the folder *markdown* need to be run in the following order:
+The .Rmd files need to be run in the following order:
 1. cfrna_input_clean.Rmd
 2. cf_wgcna.Rmd
 3. exorna_input_clean.Rmd
