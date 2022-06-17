@@ -2,7 +2,7 @@
 title: "Generation of main Fig. 2 and Supp. Fig. 3"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
-date: "16 Juni, 2022"
+date: "17 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -93,11 +93,11 @@ fig2<-ggdraw() + blue_module_plot + turq_module_plot + draw_plot(blue_reactome_p
 plot(fig2)
 ```
 
-<img src="fig2---supp.fig3_files/figure-html/main-1.png" style="display: block; margin: auto;" />
+<img src="fig2_supp.fig3_files/figure-html/main-1.png" style="display: block; margin: auto;" />
 
 ```r
 #save
-ggsave(plot=fig2, file="./plots/main_plots/fig2.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=fig2, file="./figures/main_figures/fig2.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 # Generation of Supp Fig. 3
@@ -174,12 +174,12 @@ supp_fig3<-ggdraw() + draw_plot(blue_kegg_plot, x=0, y=0.5, width = .5, height=.
 plot(supp_fig3)
 ```
 
-<img src="fig2---supp.fig3_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
+<img src="fig2_supp.fig3_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
 
 ```r
-dir.create("./cfrna/plots/supp_plots/")
+dir.create("./figures/supp_figures/")
 #save
-ggsave(plot=supp_fig3, file="./plots/supp_plots/supp_fig3.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=supp_fig3, file="./figures/supp_figures/supp_fig3.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 
