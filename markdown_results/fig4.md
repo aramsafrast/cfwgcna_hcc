@@ -167,7 +167,7 @@ load("./scrna/data/input/sc_plots.RData")
 #combine the plots and save
 options(ggrepel.max.overlaps = Inf)
 metacell_plot<-metacell_plot + 
-  labs(title="UMAP plot of liver single-cell dataset", subtitle = "metacell transformed (MacParland et al.)")  +
+  labs(title="UMAP plot of liver single-cell dataset", subtitle = "Metacell transformed (MacParland et al.)")  +
   theme_classic(base_size = 24, base_family = "Arial") +
   theme(text=element_text(family="Arial"), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5), plot.subtitle = element_text(color="black", size=25, face="bold", hjust = 0.5), legend.text=element_text(size=7)) + 
   guides(fill="none", colour = guide_legend(override.aes = list(size=10))) + 
@@ -184,8 +184,7 @@ plot(fig4)
 <img src="fig4_files/figure-html/fig4-1.png" style="display: block; margin: auto;" />
 
 ```r
-dir.create("/.scrna/plots/main_plots/")
-ggsave(plot=fig4, file="./plots/main_plots/fig4.png", units = "mm", device = ragg::agg_png, height=120, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=fig4, file="./figures/main_figures/fig4.png", units = "mm", device = ragg::agg_png, height=120, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 
