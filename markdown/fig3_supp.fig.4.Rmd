@@ -37,6 +37,7 @@ library(cowplot)
 ```
 
 # Module presevation calculation (cfRNA modules => exoRNA data)
+## warning - resource intensive! 
 ***
 
 ```{r cfmp, eval=F, warning=F, message=F}
@@ -122,6 +123,7 @@ ggsave(plot=fig3, "./figures/main_figuresfig3.png", scale=1, units = "mm", width
 ```
 
 # Module presevation calculation (exoRNA modules => cfRNA data)
+## warning resource intensive!
 ***
 
 ```{r exomp, eval=F, warning=F, message=F}

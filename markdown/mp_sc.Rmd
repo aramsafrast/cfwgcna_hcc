@@ -38,6 +38,7 @@ library(cowplot)
 ```
 
 # Module presevation calculation (cfRNA modules => cell specific scRNA data)
+## warning - resource intensive!the generated files are available
 ***
 
 ```{r cfmp, warning=F, message=F}
@@ -64,6 +65,8 @@ save(statsZ_all, file=paste0("./scrna/results/cf_mp/", i, "_", "statsZ.RData"))
 ```
 
 # Module presevation calculation (exoRNA modules => cell specific scRNA data)
+## warning - resource intensive! the generated files are available
+
 ***
 
 ```{r exomp, warning=F, message=F}
