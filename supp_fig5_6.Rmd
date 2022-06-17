@@ -1,0 +1,276 @@
+---
+title: "Generation of Supp. Fig. 4 & 5"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, MacParland et al. https://doi.org/10.1038/s41467-018-06318-7 & Li et al. https://doi.org/10.1093/nar/gkx891"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(dplyr)
+library(cowplot)
+library(ggplot2)
+library(forcats)
+library(scales)
+library(ReactomePA)
+library(org.Hs.eg.db)
+library(clusterProfiler)
+library(ragg)
+library(AnnotationDbi)
+library(enrichplot)
+library(tidyr)
+library(Seurat)
+library(ggtext)
+```
+
+# Generation of Supplementary Figure 5
+***
+
+```{r supp, warning=F, message=F, fig.width= 25, fig.height=20, fig.align='center'}
+load("./cfrna/results/wgcna_main/cfwgcna.RData")
+#for Linux based systems
+options(clusterProfiler.download.method = "wget")
+module_genes<-data.frame( module = cfmergedcolors, gene = colnames(cfrna_wgcna_input)) 
+module_genes_entrez<-AnnotationDbi::select(org.Hs.eg.db,
+                              keys = module_genes$gene,
+                              keytype = "SYMBOL",
+                              columns = c("SYMBOL","ENTREZID")) %>% dplyr::left_join(module_genes,by=c("SYMBOL"="gene"))
+#KEGG pathway enrichment analysis and visualization for module cf-turquoise
+yellow_genes<-module_genes_entrez %>% 
+  dplyr::filter(module=="cf-yellow") %>% 
+  na.omit() %>%
+  dplyr::select(ENTREZID) %>% 
+  unique()
+yellow_kegg <- enrichKEGG(gene= yellow_genes$ENTREZID, pvalueCutoff = 0.05, organism = 'hsa')
+yellow_kegg_df<-fortify(yellow_kegg, showCategory = 10) 
+yellow_kegg_df$p.adjust<- -log10(as.numeric(yellow_kegg_df$p.adjust))
+yellow_kegg_plot<-ggplot(yellow_kegg_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  ggtitle("KEGG pathwy enrichment analysis", subtitle = "cfRNA module cf-yellow") +  
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(color="black", size=27, face="bold", hjust = 0.5))
+#WikiPathways pathway enrichment analysis and visualization for module cf-yellow
+yellow_wp<-enrichWP(yellow_genes$ENTREZID, organism = "Homo sapiens") 
+yellow_wp_df<-fortify(yellow_wp, showCategory = 10) 
+yellow_wp_df$p.adjust<- -log10(as.numeric(yellow_wp_df$p.adjust))
+yellow_wp_plot<-ggplot(yellow_wp_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +  
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(color="black", size=27, face="bold", hjust = 0.5)) +
+  ggtitle("WikiPathways pathwy enrichment analysis", subtitle = "cfRNA module cf-yellow")
+#KEGG pathway enrichment analysis and visualization for module cf-blue
+purple_genes<-module_genes_entrez %>% dplyr::filter(module=="cf-purple") %>% na.omit() %>%
+  dplyr::select(ENTREZID) %>% unique()
+purple_kegg <- enrichKEGG(gene= purple_genes$ENTREZID, pvalueCutoff = 0.05, organism = "hsa")
+purple_kegg_df<-fortify(purple_kegg, showCategory = 10) 
+purple_kegg_df$p.adjust<- -log10(as.numeric(purple_kegg_df$p.adjust))
+purple_kegg_plot<-ggplot(purple_kegg_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) + geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="purple", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  + 
+  scale_x_continuous(labels =scales::label_number(accuracy = 0.001), breaks = scales::extended_breaks(n=3)) +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(color="black", size=27, face="bold", hjust = 0.5),) +
+  ggtitle("KEGG pathway enrichment analysis", subtitle = "cfRNA module cf-purple") 
+#WikiPathways pathway enrichment analysis and visualization for module cf-purple
+purple_wp<-enrichWP(purple_genes$ENTREZID, organism = "Homo sapiens") 
+purple_wp_df<-fortify(purple_wp, showCategory = 10) 
+purple_wp_df$p.adjust<- -log10(as.numeric(purple_wp_df$p.adjust))
+purple_wp_plot<-ggplot(purple_wp_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="purple", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(color="black", size=27, face="bold", hjust = 0.5),) +
+  ggtitle("WikiPathways pathway enrichment analysis",  subtitle = "cfRNA module cf-purple") 
+#combine plots
+supp_fig5<-ggdraw() + draw_plot(yellow_kegg_plot, x=0, y=0.5, width = .5, height=.5) + draw_plot(yellow_wp_plot, x=0.5, y=0.5, width = .5, height=.5) + draw_plot(purple_kegg_plot, x=0, y=0, width = .5, height=.5) + draw_plot(purple_wp_plot, x=0.5, y=0, width = .5, height=.5) +  draw_plot_label(label = c("A", "B", "C", "D"), size = 42, x = c(0, 0.5, 0, 0.5), y = c(1, 1, 0.5, 0.5)) 
+plot(supp_fig5)
+dir.create("./cfrna/plots/supp_plots/")
+#save
+ggsave(plot=supp_fig5, file="./figures/supp_figures/supp_fig5.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
+```
+
+# Generation of Supplementary Figure 6C-E
+***
+
+```{r paths, message=FALSE, warning=FALSE, fig.width= 15, fig.height=8}
+#for Linux based systems
+options(clusterProfiler.download.method = "wget")
+#load exoRNA WGCNA results
+load("./exorna/results/wgcna_main/exowgcna.RData")
+#get gene names and transfer to ENTREZID
+module_genes<-data.frame( module = exomergedcolors, gene = colnames(exorna_wgcna_input)) 
+module_genes_entrez<-AnnotationDbi::select(org.Hs.eg.db,
+                              keys = module_genes$gene,
+                              keytype = "SYMBOL",
+                              columns = c("SYMBOL","ENTREZID")) %>% dplyr::left_join(module_genes,by=c("SYMBOL"="gene"))
+brown_genes<-module_genes_entrez %>% dplyr::filter(module=="exo-brown") %>% 
+  na.omit() %>%
+  dplyr::select(ENTREZID) %>% 
+  unique()
+#generate enrichment plots for module exo-brown
+brown_reactome <- enrichPathway(gene= brown_genes$ENTREZID, pvalueCutoff = 0.05)
+brown_reactome_df<-fortify(brown_reactome, showCategory = 10) 
+brown_reactome_df$p.adjust<- -log10(as.numeric(brown_reactome_df$p.adjust))
+brown_reactome_plot<-ggplot(brown_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) + 
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) +  
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle = element_markdown(color="black", size=27, face="bold", hjust = 0.5)) +
+  ggtitle("Reactome pathway enrichment analysis",  subtitle ="<span style = 'color: red;'>exo-brown</span>")
+brown_kegg <- enrichKEGG(gene= brown_genes$ENTREZID, pvalueCutoff = 0.05, organism = 'hsa')
+brown_kegg_df<-fortify(brown_kegg, showCategory = 10) 
+brown_kegg_df$p.adjust<- -log10(as.numeric(brown_kegg_df$p.adjust))
+brown_kegg_plot<-ggplot(brown_kegg_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) + 
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=2)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  ggtitle("KEGG pathwy enrichment analysis", subtitle ="<span style = 'color: red;'>exo-brown</span>") +  
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5), 
+        plot.subtitle = element_markdown(color="black", size=27, face="bold", hjust = 0.5))
+#WikiPathways pathway enrichment analysis and visualization for module exo-brown
+brown_wp<-enrichWP(brown_genes$ENTREZID, organism = "Homo sapiens") 
+brown_wp_df<-fortify(brown_wp, showCategory = 10) 
+brown_wp_df$p.adjust<- round(-log10(as.numeric(brown_wp_df$p.adjust)), digits=1)
+brown_wp_plot<-ggplot(brown_wp_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +  
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5), 
+        plot.subtitle = element_markdown(color="black", size=27, face="bold", hjust = 0.5)) +
+  ggtitle("WikiPathways pathwy enrichment analysis", subtitle ="<span style = 'color: red;'>exo-brown</span>")
+```
+
+# Generation of Supplementary Figure 6B
+***
+
+```{r paths1, message=FALSE, warning=FALSE, fig.height=8}
+#load cell specific presevration staistics 
+load("./scrna/results/exo_mp/Portal_endothelial_Cells_statsZ.RData")
+port<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Cholangiocytes_statsZ.RData")
+chl<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Hepatocyte_statsZ.RData")
+hepato<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/LSECs_statsZ.RData")
+lsec<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Macrophage_statsZ.RData")
+macro<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Mature_B_Cells_statsZ.RData")
+b<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/NK-like_Cells_statsZ.RData")
+nk<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/T_Cells_statsZ.RData")
+t<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Plasma_Cells_statsZ.RData")
+p<-statsZ_all$Zsummary.pres
+load("./scrna/results/exo_mp/Erythroid_Cells_statsZ.RData")
+e<-statsZ_all$Zsummary.pres
+#merge, clean and plot the data
+exomp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=e, Cholangiocytes=chl, Plasma_cells=p)
+exomp_df$module<-paste0("exo-", "", exomp_df$module)
+rownames(exomp_df)<-exomp_df$module 
+exomp_df<-exomp_df  %>%  
+  filter(!module %in% c("exo-gold", "exo-grey")) %>% 
+  dplyr::select(-module)
+exomp_df$modules<-rownames(exomp_df)
+exomp_long<-exomp_df %>%  
+  pivot_longer(!modules, names_to = "cell", values_to = "value") 
+exomp_long$cell <-recode(exomp_long$cell, t_cells = "T cells", 'NK_cells'="NK-like cells", Erythroid="Erythroid cells", b_cells="Mature B cells", Plasma_cells="Plasma cells", Portal="Portal endothelial cells")
+exo_heatmap<-ggplot(exomp_long, aes(x = cell, y = modules)) +
+  geom_tile(color = "black", aes(fill = value)) + theme_classic(base_size = 24) + 
+  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,20), na.value="grey95") +
+  labs(x = "", y = "", fill="cor") +
+  scale_x_discrete(expand = c(0,0))+
+  scale_y_discrete(expand = c(0,0), position = "right") + 
+  theme(legend.title=element_blank(),
+    legend.position="left",
+    legend.title.align=0.5,
+    legend.key = element_rect(fill = "lightblue", color = NA),
+    legend.key.size = unit(1, "cm"),
+    legend.key.width = unit(1,"cm"), 
+    plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(color="black", size=25, face="bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, vjust=1, hjust=1),
+    axis.text.y = element_text(angle = 0, hjust = 1, colour = c("black", "red", "black", "black", "black", "black"))) + ggtitle("exoRNA module preservation", subtitle = "scRNA dataset")
+```
+
+# Generation of Supplementary Figure 6
+***
+
+```{r paths2, message=FALSE, warning=FALSE, fig.width= 25, fig.height=20, fig.align='center'}
+#load scRNA UMAP plot
+load("./scrna/data/input/sc_plots.RData")
+raw_sc_plot<-raw_sc_plot + 
+  labs(title="UMAP plot of liver single-cell dataset", subtitle = expression(paste(underline("before"), " ", "metacell transformation (MacParland et al.)")))  +
+  theme_classic(base_size = 24, base_family = "Arial") +
+  theme(text=element_text(family="Arial"), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5), plot.subtitle = element_text(color="black", size=25, face="bold", hjust = 0.5), legend.text=element_text(size=7)) + 
+  guides(fill="none", colour = guide_legend(override.aes = list(size=10))) + 
+  NoLegend()
+#combine the plots and save
+options(ggrepel.max.overlaps = Inf)
+supp_fig6_1<-ggdraw() + 
+  draw_plot(raw_sc_plot, x=0, y=0.5, width=1, height = .5) + 
+  draw_plot(exo_heatmap, x=0, y=0, width=.5, height = .5) + 
+  draw_plot(brown_reactome_plot, x=0.5, y=0, height=.5, width = .5) 
+
+supp_fig6<-ggdraw() + 
+  draw_plot(supp_fig6_1, x=0, y=0.33, width=1, height = .67) + draw_plot(brown_kegg_plot, x=0, y=0, width=.5, height = .33) + draw_plot(brown_wp_plot, x=.5, y=0, width=.5, height = .33) + 
+  draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 38, x = c(0, 0, 0.5, 0, 0.5), y = c(1, 0.67, 0.67, 0.33, 0.33), family = "Arial") 
+plot(supp_fig6)
+#dir.create("/.scrna/plots/main_plots/")
+ggsave(plot=supp_fig6, file="./figures/supp_figuressupp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
+```
+
+```{r}
+sessionInfo()
+```

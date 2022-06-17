@@ -1,0 +1,227 @@
+---
+title: "WGCNA of cfRNA samples"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# Weighted gene co-expression analysis of all plasma cfRNA samples - healhty cohort + hcc cohort
+***
+
+## load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(forcats)
+library(dplyr)
+library(WGCNA)
+library(cowplot)
+library(ggplot2)
+library(dendextend)
+library(igraph)
+library(RColorBrewer)
+library(tibble)
+library(ggrepel)
+library(tidyr)
+library(ragg)
+library(cowplot)
+```
+
+## Data cleanup 
+***
+
+```{r clean, message=F, warning=F, fig.width= 15, fig.height=8}
+#load gene expression matrix and metadata
+load("./cfrna/data/input/cfrna_input.RData")
+#check with WGCNA function if there are any bad samples or genes (e.g. too many missing values)
+gsg <- goodSamplesGenes(cfrna_wgcna)
+gsg$allOK #no bad samples of genes detected
+#for outlier detection hierarchical clustering is done
+sampleTree <- hclust(dist(cfrna_wgcna), method = "average")
+#plot the results as a dendrogram 
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+#based on dendrogram choose cutting height - the outlier samples to filter out 
+clust <- cutreeStatic(sampleTree, cutHeight = 100, minSize = 2)
+#examine the clusters - one should be very small and contain only the outlier samples
+table(clust)
+#choose only non-outlier samples
+cfrna_wgcna_input<-cfrna_wgcna[clust %in% c(1,2), ]
+#check data dimensions 
+dim(cfrna_wgcna_input)
+```
+
+## WGCNA 
+### picking a power value
+***
+
+```{r power, warning=FALSE, message=FALSE, fig.width= 15, fig.height=8}
+#use 20 threads 
+enableWGCNAThreads(nThreads=8) 
+#picking soft threshold power
+powers <- c(c(1:10), seq(from = 12, to=20, by=2))
+#calculate the fit to a scale-free network for different powers 
+sft <- pickSoftThreshold(cfrna_wgcna_input, powerVector = powers, networkType = "unsigned")
+#plotting the results; plot 1
+rsq<-ggplot(sft$fitIndices, aes(x=Power, y=(-sign(slope)*SFT.R.sq), label=Power)) + 
+  geom_text(col="blue", size=10, family="Arial", fontface="bold") +
+  ylab("Scale Free Topology Model Fit signed Rˆ2") +
+  xlab("Soft Threshold (power)") + 
+  geom_hline(yintercept = 0.85) + 
+  theme_minimal(base_size = 26, base_family = "Arial") +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5)) +
+  ggtitle("Scale independence in cfRNA WGCNA")
+#plot 2; mean connectivity (the mean of connections of genes in the network) generally should be about or below lower hundreds
+conne<-ggplot(sft$fitIndices, aes(x=Power, y=mean.k., label=Power)) +
+  geom_point(size=8) +
+  scale_y_log10() + 
+  xlab("Soft Threshold (power)") +
+  ggtitle("Mean Connectivity") + 
+  theme_minimal(base_size = 26, base_family = "Arial") +
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5)) +
+  ggtitle("Mean connectivity in cfRNA WGCNA")
+cfrna_param<-ggdraw() + draw_plot(rsq, x=0, y=0, width = .5, height=1) + draw_plot(conne, x=0.5, y=0, width = .5, height=1)
+plot(cfrna_param)
+```
+
+### main steps of WGCNA
+* build adjacency matrix with the power value 
+* calculate TOM and transform it to a disTOM
+* hierarchical clustering
+* merging similar modules
+***
+
+```{r modules, message=F, warning=F, fig.width= 15, fig.height=8}
+#based on our results and WGCNS recommendations we choose a power value of 6
+softPower<-6
+enableWGCNAThreads(nThreads=8)
+#building an adjacency matrix
+adjacency <- adjacency(cfrna_wgcna_input, power = softPower, type = "unsigned")
+#turn adjacency into topological overlap matrix (TOM) 
+TOM <- TOMsimilarity(adjacency, TOMType = "unsigned")
+#transformation into a dissimilarity measure 
+dissTOM <- 1-TOM
+# Call the hierarchical clustering function and use the dissimilarity measure 
+geneTree <- hclust(as.dist(dissTOM), method = "average")
+#we pick a minimal threshold of 30 genes per potential module 
+minModuleSize <- 30
+# Module identification using dynamic tree cut:
+dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM, minClusterSize = minModuleSize, deepSplit=2)
+# Convert numeric labels into colors
+dynamicColors <- labels2colors(dynamicMods)
+#count the resulting modules
+table(dynamicColors)
+#calculate the module eigengenes (1st principal component of modules)
+MEList <- moduleEigengenes(cfrna_wgcna_input, colors = dynamicColors)
+MEs <- MEList$eigengenes
+#calculate dissimilarity of module eigengenes
+MEDiss <- 1-cor(MEs)
+#cluster module eigengenes
+METree <- hclust(as.dist(MEDiss), method = "average")
+#plot the result
+d<-as.dendrogram(METree)
+lab<-METree$labels[order.dendrogram(d)]
+d<-color_labels(d ,labels=lab, col = sub("ME","",lab) )
+par(mar=c(5,4,4,6)) 
+plot(d, 
+     main = "Clustering of module eigengenes", 
+     horiz=T, 
+     xlab = "", sub = "",cex=0.5)
+#we pick a dissimilarity threshold of 0.2 (=correlation of 0.8) to merge very similar modules
+MEDissThres <- 0.2
+#plot the threshold line 
+abline(v=0.2, col=3)
+#call an automatic merging function
+merge <- mergeCloseModules(cfrna_wgcna_input, dynamicColors, cutHeight = MEDissThres)
+#merged module colors
+cfmergedcolors <- merge$colors
+# get the eigengenes of the new merged modules
+mergedMEs <- merge$newMEs
+#plot the gene dendrogram to compare the old and new modules
+plotDendroAndColors(geneTree, cbind(dynamicColors, cfmergedcolors),
+c("Dynamic Tree Cut", "Merged dynamic"),
+dendroLabels = FALSE, hang = 0.03,
+addGuide = TRUE, guideHang = 0.05)
+n<-0
+for (i in unique(cfmergedcolors)){
+n<-n+1
+if (i=="grey") {
+} else{
+cfmergedcolors[cfmergedcolors==i]<-paste0("cf-", "", i)
+} 
+}
+#get a list of new modules 
+table(cfmergedcolors)
+#plot the new merged modules by size
+df<-data.frame(dc=cfmergedcolors) %>% 
+  dplyr::count(dc) %>% mutate(col=str_remove(dc, "cf-"))
+cfrna_bar<-ggplot(df, aes(x=reorder(dc, n), y=n, fill=dc)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  scale_fill_manual(values = as.character(df$col)) +
+  theme_minimal(base_size = 26, base_family = "Arial") +
+  theme(legend.position = 'None', panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank(), axis.title=element_blank(), plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5)) +
+  ggtitle("Number of genes in cfRNA modules") +
+  scale_y_continuous(expand = c(0, 0))
+plot(cfrna_bar)
+#get the top hub gene of each module (most connected gene in a module)
+chooseTopHubInEachModule(cfrna_wgcna_input, cfmergedcolors, power=softPower, type="unsigned")
+#filter metadata appropriately (no outliers)
+cfrna_meta_filt<-cfrna_metadata[clust %in% c(1,2), ]
+#clean the metadata (for downstream correlation to be possible) and choose the columns of interest to correlate with modules 
+#gender assignments are transformed from {male/female} => {0/1}
+cfrna_meta_filt$gender<-ifelse(cfrna_meta_filt$gender=="male", 0, 1)
+#disease state assignments are transformed from {cancer/healthy} => {1/0}
+cfrna_meta_filt$disease_state<-ifelse(cfrna_meta_filt$disease_state=="liver cancer patient", 1, 0)
+#*choose columns of interest
+cfrna_meta_input<- cfrna_meta_filt %>% 
+  dplyr::select(age, gender, disease_state)
+dir.create("./cfrna/results/")
+dir.create("./cfrna/results/wgcna_main/")
+save(cfrna_wgcna_input, cfrna_meta_input, cfmergedcolors, cfrna_param, cfrna_bar, file="./cfrna/results/wgcna_main/cfwgcna.RData")
+```
+
+### Exporting modules (Cytoscape preparation)
+***
+
+```{r modules, message=F, warning=F}
+dir.create("./cfrna/results/cytoscape/")
+options(stringsAsFactors = FALSE)
+probes = colnames(cfrna_wgcna_input)
+module <- unique(cfmergedcolors)
+for (modules in module) {
+  inModule = is.finite(match(cfmergedcolors, modules))
+  modProbes = probes[inModule]
+  modadj = adjacency[inModule, inModule]
+  dimnames(modadj) = list(modProbes, modProbes)
+  modadj = as.table(modadj)
+  nTop = 30; 
+  IMConn = softConnectivity(cfrna_wgcna_input[, modProbes]);
+  top = (rank(-IMConn) <= nTop)
+  modTOM = TOM[inModule, inModule]
+  cyt = exportNetworkToCytoscape(modTOM[top, top],
+                                 edgeFile = paste("./cfrna/results/modules/edges_", modules, ".txt", sep=""),
+                                 nodeFile = paste("./cfrna/results/modules/nodes_", modules, ".txt", sep=""),
+                                 weighted = TRUE,
+                                 threshold = 0.1,
+                                 nodeNames = modProbes[top],
+                                 nodeAttr = cfmergedcolors[inModule][top])
+}
+```
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,183 @@
+---
+title: "Generation of main Fig. 4"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(dplyr)
+library(cowplot)
+library(ggplot2)
+library(forcats)
+library(scales)
+library(ReactomePA)
+library(org.Hs.eg.db)
+library(clusterProfiler)
+library(ragg)
+library(AnnotationDbi)
+library(enrichplot)
+library(tidyr)
+library(Seurat)
+library(ggtext)
+```
+
+# Generation of Figure 4C, D
+***
+
+```{r paths, message=FALSE, warning=FALSE, fig.width= 15, fig.height=8}
+#for Linux based systems
+options(clusterProfiler.download.method = "wget")
+#load cfRNA WGCNA results
+load("./cfrna/results/wgcna_main/cfwgcna.RData")
+#get gene names and transfer to ENTREZID
+module_genes<-data.frame( module = cfmergedcolors, gene = colnames(cfrna_wgcna_input)) 
+module_genes_entrez<-AnnotationDbi::select(org.Hs.eg.db,
+                              keys = module_genes$gene,
+                              keytype = "SYMBOL",
+                              columns = c("SYMBOL","ENTREZID")) %>% dplyr::left_join(module_genes,by=c("SYMBOL"="gene"))
+#generate enrichment plots for module cf-purple
+purple_genes<-module_genes_entrez %>% dplyr::filter(module=="cf-purple") %>% 
+  na.omit() %>%
+  dplyr::select(ENTREZID) %>% 
+  unique()
+purple_reactome <- enrichPathway(gene= purple_genes$ENTREZID, pvalueCutoff = 0.05)
+purple_reactome_df<-fortify(purple_reactome, showCategory = 10) 
+purple_reactome_df$p.adjust<- round(-log10(as.numeric(purple_reactome_df$p.adjust)), digits=1)
+purple_reactome_plot_old<-enrichplot::cnetplot(purple_reactome,  color_category = "purple", color_gene = "purple", cex_label_category=1, cex_label_gene=1, showCategory = 5) + theme_void(base_size = 24) +   labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-purple</span>") + theme(text=element_text(family="Arial"), plot.margin = unit(c(0, 0, 0, 0), "cm"), plot.subtitle =  element_markdown(size = 25, face="bold", hjust = 0.5), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5)) + guides(size = guide_legend(reverse=T))
+purple_reactome_plot<-ggplot(purple_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-purple</span>") +  
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle =  element_markdown(size = 27, face="bold", hjust = 0.5))
+#generate enrichment plots for module cf-yellow
+yellow_genes<-module_genes_entrez %>% 
+  dplyr::filter(module=="cf-yellow") %>% 
+  na.omit() %>%
+  dplyr::select(ENTREZID) %>% 
+  unique()
+yellow_reactome <- enrichPathway(gene= yellow_genes$ENTREZID, pvalueCutoff = 0.05)
+yellow_reactome_df<-fortify(yellow_reactome, showCategory = 10) 
+yellow_reactome_df$p.adjust<- round(-log10(as.numeric(yellow_reactome_df$p.adjust)), digits=1)
+yellow_reactome_plot_old<-enrichplot::cnetplot(yellow_reactome,  color_category = "yellow", color_gene = "yellow", cex_label_category=1, cex_label_gene=1, showCategory = 5) + theme_void(base_size = 24) + 
+  labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-yellow</span>") + theme(text=element_text(family="Arial"), plot.margin = unit(c(0, 0, 0, 0), "cm"), plot.subtitle =  element_markdown(size = 25, face="bold", hjust = 0.5), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5)) + guides(size = guide_legend(reverse=T))
+yellow_reactome_plot<-ggplot(yellow_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
+  geom_point(aes(size = Count, color = p.adjust))  +  
+  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  guides(size = guide_legend(reverse=T)) + 
+  ylab(NULL) + 
+  labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-yellow</span>") +  
+  scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
+  theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
+  theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
+        plot.subtitle =  element_markdown(size = 27, face="bold", hjust = 0.5))
+```
+
+# Generation of Figure 4B
+***
+
+```{r heatmap, message=FALSE, warning=FALSE, fig.height=8}
+#load cell specific presevration staistics 
+load("./scrna/results/cf_mp/Portal_endothelial_Cells_statsZ.RData")
+port<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Cholangiocytes_statsZ.RData")
+chl<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Hepatocyte_statsZ.RData")
+hepato<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/LSECs_statsZ.RData")
+lsec<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Macrophage_statsZ.RData")
+macro<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Mature_B_Cells_statsZ.RData")
+b<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/NK-like_Cells_statsZ.RData")
+nk<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/T_Cells_statsZ.RData")
+t<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Plasma_Cells_statsZ.RData")
+p<-statsZ_all$Zsummary.pres
+load("./scrna/results/cf_mp/Erythroid_Cells_statsZ.RData")
+e<-statsZ_all$Zsummary.pres
+#merge, clean and plot the data
+cfmp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=e, Cholangiocytes=chl, Plasma_cells=p)
+cfmp_df$module<-paste0("cf-", "", cfmp_df$module)
+rownames(cfmp_df)<-cfmp_df$module 
+cfmp_df<-cfmp_df  %>%  
+  filter(!module %in% c("cf-gold", "cf-grey")) %>% 
+  dplyr::select(-module)
+cfmp_df$modules<-rownames(cfmp_df)
+cfmp_long<-cfmp_df %>%  
+  pivot_longer(!modules, names_to = "cell", values_to = "value") 
+cfmp_long$cell <-recode(cfmp_long$cell, t_cells = "T cells", 'NK_cells'="NK-like cells", Erythroid="Erythroid cells", b_cells="Mature B cells", Plasma_cells="Plasma cells", Portal="Portal endothelial cells")
+cf_heatmap<-ggplot(cfmp_long, aes(x = cell, y = modules)) +
+  geom_tile(color = "black", aes(fill = value)) + theme_classic(base_size = 25) + 
+  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,17), na.value="grey95") +
+  labs(x = "", y = "", fill="cor") +
+  scale_x_discrete(expand = c(0,0))+
+  scale_y_discrete(expand = c(0,0), position = "right") + 
+  ggtitle("cfRNA module preservation", subtitle = "scRNA dataset") + 
+  theme(
+    text=element_text(family="Arial"),
+    legend.title=element_blank(),
+    legend.position="left",
+    legend.title.align=0.5,
+    legend.key = element_rect(fill = "lightblue", color = NA),
+    legend.key.size = unit(1, "cm"),
+    legend.key.width = unit(1,"cm"), 
+    plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(color="black", size=25, face="bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, vjust=1, hjust=1),
+    axis.text.y = element_text(angle = 0, hjust = 1, colour = c("black", "black", "black", "black", "red", "black", "black", "red"))) 
+```
+
+# Generation of Figure 4
+***
+
+```{r fig4, message=FALSE, warning=FALSE, fig.width= 25, fig.height=20, fig.align='center'}
+#load scRNA UMAP plot
+load("./scrna/data/input/sc_plots.RData")
+#combine the plots and save
+options(ggrepel.max.overlaps = Inf)
+metacell_plot<-metacell_plot + 
+  labs(title="UMAP plot of liver single-cell dataset", subtitle = "metacell transformed (MacParland et al.)")  +
+  theme_classic(base_size = 24, base_family = "Arial") +
+  theme(text=element_text(family="Arial"), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5), plot.subtitle = element_text(color="black", size=25, face="bold", hjust = 0.5), legend.text=element_text(size=7)) + 
+  guides(fill="none", colour = guide_legend(override.aes = list(size=10))) + 
+  NoLegend()
+fig4<-ggdraw() + 
+  draw_plot(metacell_plot, x=0, y=0.5, width=.5, height = .5) + 
+  draw_plot(cf_heatmap, x=0.5, y=0.5, width=.5, height = .5) + 
+  draw_plot(yellow_reactome_plot, x=0, y=0, height=.5, width = .5) + 
+  draw_plot(purple_reactome_plot, x=0.5, y=0, height=0.5, width = .5) + 
+  draw_plot_label(label = c("A", "B", "C", "D"), size = 38, x = c(0, 0.5, 0, 0.5), y = c(1, 1, 0.5, 0.5), family = "Arial") 
+plot(fig4)
+ggsave(plot=fig4, file="./figures/main_figures/fig4.png", units = "mm", device = ragg::agg_png, height=120, width=180, scaling = 0.3, limitsize = FALSE)
+```
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,144 @@
+---
+title: "Preprocessing of single-cell RNA samples from livers of healthy donors"
+subtitle: "Data of MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r, message=F, warning=F}
+library(scWGCNA)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
+library(Seurat)
+library(DT)
+library(tibble)
+library(tidyr)
+library(BiocParallel)
+```
+
+#  Download the data (GSE115469)
+***
+
+```{bash download, message=F, warning=F}
+#download the scRNA count matrix
+mkdir -p ./scrna/data/raw/
+wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_Data.csv.gz | gunzip -c > ./scrna/data/raw/scrna_countm.txt 
+#download the metadata
+wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_CellClusterType.txt.gz | gunzip -c > ./scrna/data/raw/scrna_metadata_init.csv 
+```
+
+# Data cleanup; normalization
+***
+
+```{r, message=F, warning=F, fig.width= 15, fig.height=8}
+#set seed for reproducible UMAP calculations
+set.seed(1)
+#load data into Seurat
+ref <- read.csv("./scrna/data/raw/scrna_countm.txt")
+ref.txt <- read.delim("./scrna/data/raw/scrna_metadata_init.csv")
+#merge cell subtypes
+ref.txt$CellType<-ifelse(grepl("Hepatocyte",ref.txt$CellType),"Hepatocyte",ref.txt$CellType)
+ref.txt$CellType<-ifelse(grepl("T_Cells",ref.txt$CellType),"T_Cells",ref.txt$CellType)
+ref.txt$CellType<-ifelse(grepl("LSECs",ref.txt$CellType),"LSECs",ref.txt$CellType)
+ref.txt$CellType<-ifelse(grepl("Macrophage",ref.txt$CellType),"Macrophage",ref.txt$CellType)
+ref<-ref %>% column_to_rownames(., var = "X")
+sobject <- CreateSeuratObject(ref)
+sobject$cell_type<-ref.txt$CellType
+#normalize and visualize the data
+sobject <- NormalizeData(sobject)
+sobject <- FindVariableFeatures(sobject)
+sobject <- ScaleData(sobject)
+sobject <- RunPCA(sobject, features = VariableFeatures(object = sobject))
+sobject <- FindNeighbors(sobject)
+sobject <- FindClusters(sobject)
+sobject <- RunUMAP(sobject,  features = VariableFeatures(object = sobject))
+sobject@meta.data$cell_type_clean <- sobject@meta.data$cell_type
+sobject@meta.data$cell_type_clean <-recode(sobject@meta.data$cell_type_clean, Hepatocyte="Hepatocytes", T_Cells = "T cells", Macrophage="Macrophages", 'NK-like_Cells'="NK-like cells", Erythroid_Cells="Erythroid cells", Mature_B_Cells="Mature B cells", Plasma_Cells="Plasma cells", Portal_endothelial_Cells="Portal endothelial cells", Hepatic_Stellate_Cells="Hepatic stellate cells")
+options(ggrepel.max.overlaps = Inf)
+raw_sc_plot<-DimPlot(sobject, reduction = "umap", label = TRUE, repel = TRUE, label.size = 10, group.by = "cell_type_clean", combine = TRUE) +  
+  labs(title=paste0("UMAP plot of healthy liver single-cell dataset before metacell transformation", "\n", "(MacParland et al.)"))  +
+  theme_classic(base_size = 24) +
+  theme(plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5), legend.text=element_text(size=20)) + 
+  guides(fill="none", colour = guide_legend(override.aes = list(size=10))) + 
+  NoLegend()
+plot(raw_sc_plot)
+```
+
+# Construct metacells
+***
+
+```{r, message=T, warning=T, fig.width= 15, fig.height=8}
+aggregated<-aggregate(.~cell_type, sobject@meta.data)
+sobject@meta.data %>% dplyr::count(cell_type)
+sobject$metacell_group <- as.character(sobject$cell_type)
+#use predefined genes for cell cycle scoring
+s.genes <- cc.genes.updated.2019$s.genes
+g2m.genes <- cc.genes.updated.2019$g2m.genes
+sobject <- CellCycleScoring(sobject, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+sobject@meta.data %>% dplyr::count(cell_type, Phase)
+DimPlot(sobject, reduction = "umap", label = TRUE, repel = TRUE, group.by = c("cell_type", "Phase"))
+#remove hepatic stellate cells due to low number
+sobject<-subset(x = sobject, subset = cell_type!="Hepatic_Stellate_Cells")
+#construct metacells
+seurat_list <- list()
+for(group in unique(sobject$cell_type)){
+  print(group)
+  cur_seurat <- subset(sobject, cell_type == group)
+  #cur_seurat <- cur_seurat[genes.keep,]
+  k<-ifelse(ncol(cur_seurat@assays$RNA) <300, 8, 20)
+  cur_metacell_seurat <- scWGCNA::construct_metacells(
+    cur_seurat, name=group,
+    k=k, reduction='umap',
+    assay='RNA', slot='data'
+  )
+  cur_metacell_seurat$cell_type <- as.character(unique(cur_seurat$cell_type))
+  seurat_list[[group]] <- cur_metacell_seurat
+}
+# merge all of the metacells objects
+metacell_seurat <- merge(seurat_list[[1]], seurat_list[2:length(seurat_list)])
+#size of metacell seurat file
+dim(metacell_seurat)
+#normalize and visualize the new data
+metacell_seurat <- NormalizeData(metacell_seurat)
+all.genes <- rownames(metacell_seurat)
+metacell_seurat <- ScaleData(metacell_seurat, features = all.genes)
+metacell_seurat <- FindVariableFeatures(metacell_seurat)
+metacell_seurat <- RunPCA(metacell_seurat, features = VariableFeatures(object = metacell_seurat))
+metacell_seurat <- FindNeighbors(metacell_seurat)
+metacell_seurat <- FindClusters(metacell_seurat)
+metacell_seurat <- RunUMAP(metacell_seurat,  features = VariableFeatures(object = metacell_seurat))
+options(ggrepel.max.overlaps = Inf)
+metacell_seurat@meta.data$cell_type<-recode(metacell_seurat@meta.data$cell_type, Hepatocyte="Hepatocytes", T_Cells = "T cells", Macrophage="Macrophages", 'NK-like_Cells'="NK-like cells", Erythroid_Cells="Erythroid cells", Mature_B_Cells="Mature B cells", Plasma_Cells="Plasma cells", Portal_endothelial_Cells="Portal endothelial cells")
+metacell_plot<-DimPlot(metacell_seurat, reduction = "umap", label = TRUE, repel = TRUE, label.size = 10, group.by = "cell_type", combine = TRUE) + 
+  labs(title=paste0("UMAP plot of healthy liver single-cell dataset after metacell transformation", "\n", "(MacParland et al.)"))  +
+  theme_classic(base_size = 18) +
+  theme(plot.title = element_text(color="black", size=20, face="bold", hjust = 0.5), legend.text=element_text(size=20)) + 
+  guides(fill="none", colour = guide_legend(override.aes = list(size=10))) + 
+  NoLegend()
+plot(metacell_plot)
+dir.create("./scrna/data/input/")
+save(raw_sc_plot, metacell_plot, file="./scrna/data/input/sc_plots.RData")
+save(metacell_seurat, file="./scrna/data/input/sc_data.RData")
+```
+
+```{r}
+sessionInfo()
+```

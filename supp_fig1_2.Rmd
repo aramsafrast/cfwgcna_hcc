@@ -1,0 +1,60 @@
+---
+title: "Generation of Supp. Figs. 1 & 2"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & Li et al. https://doi.org/10.1093/nar/gkx891"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(dplyr)
+library(cowplot)
+library(ggplot2)
+library(forcats)
+library(scales)
+library(magick)
+library(ragg)
+```
+
+# Generation of Supplementary Figure 1
+***
+
+```{r supp2, warning=F, message=F, fig.width= 25, fig.height=20, fig.align='center'}
+load("./cfrna/results/wgcna_main/cfwgcna.RData")
+load("./exorna/results/wgcna_main/exowgcna.RData")
+supp_fig2<-ggdraw() + draw_plot(cfrna_bar, x=0, y=0, width = .5, height=1) + draw_plot(exorna_bar, x=0.5, y=0, width = .5, height=1) +  draw_plot_label(label = c("A", "B"), size = 28, x = c(0, 0.5), y = c(1, 1), family = "Arial") 
+plot(supp_fig2)
+dir.create("./plots/supp_plots/", recursive = T)
+#save
+ggsave(plot=supp_fig2, file="./figures/supp_figures/supp_fig2.png", units = "mm", device = ragg::agg_png, height=80, width=180, scaling = 0.3, limitsize = FALSE)
+```
+
+# Generation of Supplementary Figure 2
+***
+
+```{r supp, warning=F, message=F, fig.width= 25, fig.height=20, fig.align='center'}
+supp_fig1<-ggdraw() + draw_plot(cfrna_param, x=0, y=0.5, width = 1, height=.5) + draw_plot(exorna_param, x=0, y=0, width = 1, height=.5) +  draw_plot_label(label = c("A", "B"), size = 28, x = c(0, 0), y = c(1, 0.5), family = "Arial") 
+plot(supp_fig1)
+#save
+ggsave(plot=supp_fig1, file="./figures/supp_figures/supp_fig1.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
+```
+
+```{r}
+sessionInfo()
+```

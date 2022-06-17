@@ -1,0 +1,2 @@
+fromNode	toNode	weight	direction	fromAltName	toAltName
+HBG2	HBG1	0.50359701900116	undirected	NA	NA

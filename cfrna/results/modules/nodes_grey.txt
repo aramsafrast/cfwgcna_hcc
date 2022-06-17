@@ -1,0 +1,3 @@
+nodeName	altName	nodeAttr[nodesPresent, ]
+HBG2	NA	grey
+HBG1	NA	grey

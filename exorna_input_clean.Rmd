@@ -1,0 +1,157 @@
+---
+title: "Preprocessing of blood exoRNA samples from hepatocellular carcinoma (hcc) patients"
+subtitle: "Data of Li et al. https://doi.org/10.1093/nar/gkx891"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(DESeq2)
+library(stringr)
+library(dplyr)
+library(biomaRt)
+library(XML)
+library(reutils)
+library(tidyr)
+library(DT)
+```
+
+#  Download and map the data (GSE100207)
+* resource/time intensive
+* hence by default won't run
+* ready-made count matrix already provided
+* to run this code chunk set eval=TRUE
+* >120G disk space needed locally
+***
+
+```{bash prep, message=F, warning=F, eval=FALSE}
+#download the exoRNA samples
+mkdir -p ./exorna/data/raw/fastq
+mkdir -p ./exorna/data/raw/map
+mkdir -p ./exorna/data/raw/hs_genome
+mkdir -p ./exorna/data/raw/hs_genome/star/
+#get human genome fasta sequence
+wget -q -O - http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh38.primary_assembly.genome.fa.gz | gunzip -c > ./exorna/data/raw/hs_genome/hg38.fa
+#get human genome gtf annotation
+wget -q -O - http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.primary_assembly.annotation.gtf.gz | gunzip -c > ./exorna/data/raw/hs_genome/hg38.gtf
+#make STAR genome index
+STAR --runThreadN 8 --runMode genomeGenerate --genomeDir ./exorna/data/raw/hs_genome/star/ --genomeFastaFiles ./exorna/data/raw/hs_genome/hg38.fa --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf
+for f in {516..536} ; do fasterq-dump SRR5712"$f" -O ./exorna/data/raw -t ./exorna/data/raw ; gzip *fastq ; done
+#map with STAR
+for f in {516..536} ; do STAR --runMode alignReads --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf --readFilesIn ./exorna/data/raw/fastq/SRR5712"$f"_1.fastq.gz ./exorna/data/raw/fastq/SRR5712"$f"_2.fastq.gz --readFilesCommand "gunzip -c" --outSAMtype BAM SortedByCoordinate --genomeDir  ./exorna/data/raw/hs_genome/hg38.fa --outFileNamePrefix ./exorna/data/raw/map/"$f" --runThreadN 8 : done
+featureCounts -T 8 -p -s 1 -a ./exorna/data/raw/hs_genome/hg38.gtf -o ./exorna/data/raw/exorna_countm.txt ./exorna/data/raw/map/*bam
+#download the metadata
+wget -q -nv -O ./exorna/data/raw/exorna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=SRP109668"
+```
+
+# Sample metadata construction 
+***
+
+```{r metadata, message=F, warning=F}
+exorna_metadata_init <- read.csv("./exorna/data/raw/exorna_metadata_init.csv")
+exorna_metadata_xml <- efetch(c(exorna_metadata_init$Run), "sra")
+exorna_metadata_xml_cont<-content(exorna_metadata_xml)
+exorna_metadata_full<-xmlToDataFrame(nodes = getNodeSet(exorna_metadata_xml_cont, "//SAMPLE_ATTRIBUTES/SAMPLE_ATTRIBUTE"))
+exorna_metadata_full$samples<-rep(exorna_metadata_init$Run, each=4)
+exorna_metadata<-exorna_metadata_full %>% 
+  pivot_wider(names_from = TAG, values_from = VALUE)
+names(exorna_metadata)[3]<-"disease_state"
+```
+
+#  Cleanup 
+***
+
+```{r clean, message=F, warning=F}
+#load dataset
+exorna_countm <- read.delim("./exorna/data/raw/exorna_countm.txt", comment.char="#")
+exorna_countm <- exorna_countm[, -c(2:6)]
+#transfer gene IDs from column to rownames
+rownames(exorna_countm) <- exorna_countm$Geneid
+exorna_countm<-exorna_countm %>% dplyr::select(-Geneid)
+#shorten sample names
+names(exorna_countm)<-c(seq(16, 36))
+#initial dimensions of the data
+dim(exorna_countm)
+#synchronize metadata sample names with count matrix sample names
+exorna_metadata$samples<-str_remove(exorna_metadata$samples, "SRR57125")
+```
+
+#  Normalization and filtering in DESeq2 
+***
+
+```{r deseq, message=F, warning=F, fig.width= 15, fig.height=8}
+#input gene expression and metadata into DESeq2 format with the experimental design set to healthy/disease
+dds <- DESeq2::DESeqDataSetFromMatrix(countData = as.matrix(exorna_countm),
+                                         colData = as.data.frame(exorna_metadata),
+                                         design = ~ 1)
+#estimate size (normalization) factors
+dds <- estimateSizeFactors(dds)
+#from the normalized data filter out genes with low expression and keep genes with expression of 5 and higher in at least 90% of samples
+idx <- rowSums( counts(dds, normalized=TRUE) >= 5 ) >= ncol(exorna_countm) * 90/100
+dds <- dds[idx,]
+#get the variance stabilized data
+dds<-estimateDispersions(dds)
+exorna_vst<-getVarianceStabilizedData(dds)
+#check dimensions 
+dim(exorna_vst)
+#view sample metadata
+datatable(exorna_metadata, caption = 'exoRNA sample characteristics')
+```
+
+#  Getting gene names  
+***
+
+```{r biomart, message=F, warning=F, fig.width= 15, fig.height=8}
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+genes<-rownames(exorna_vst)
+#remove version number
+genes_clean<-gsub("\\..*","",genes)
+#define the dataset to use for conversion
+mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+#get the hgnc symbols of genes
+gene_IDs <- getBM(filters= "ensembl_gene_id", attributes= c("hgnc_symbol", "ensembl_gene_id"), values = genes_clean, mart= mart)
+#convert the matrix to dataframe for easier data wrangling
+exorna_vst_df<-as.data.frame(exorna_vst)
+#get the gene IDs into a column
+exorna_vst_df$genes<-genes_clean
+#transfer the gene names into the main dataset
+exorna_vst_merge<-merge(exorna_vst_df, gene_IDs, by.x="genes", by.y="ensembl_gene_id")
+#some genes to not have names - substitute the empty spaces with NA
+exorna_vst_merge <- exorna_vst_merge %>% 
+  mutate_all(na_if,"")
+#create a new column where we will have the gene names and when names = NA instead we will have gene IDs
+exorna_vst_merge$gene_new<-ifelse(is.na(exorna_vst_merge$hgnc_symbol), exorna_vst_merge$genes, exorna_vst_merge$hgnc_symbol)
+#update the rownames
+exorna_vst_merge<-exorna_vst_merge[!duplicated(exorna_vst_merge$gene_new), ]
+rownames(exorna_vst_merge) <- exorna_vst_merge$gene_new
+#drop the now unnecessary columns
+exorna_vst_merge <- exorna_vst_merge %>% 
+  dplyr::select(-c(genes, hgnc_symbol, gene_new))
+#transform the dataset into a matrix suitable for WGCNA
+exorna_wgcna<- t(as.matrix(exorna_vst_merge))
+#final dimensions of the input data
+dim(exorna_wgcna)
+dir.create("./exorna/data/input/", recursive = TRUE)
+save(exorna_wgcna, exorna_metadata, file="./exorna/data/input/exorna_input.RData")
+```
+
+```{r}
+sessionInfo()
+```

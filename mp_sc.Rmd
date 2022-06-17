@@ -1,0 +1,94 @@
+---
+title: "cfRNA & exoRNA module preservation analysis in scRNA data"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, Li et al. https://doi.org/10.1093/nar/gkx891 & MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(Seurat)
+library(forcats)
+library(dplyr)
+library(WGCNA)
+library(cowplot)
+library(ggplot2)
+library(RColorBrewer)
+library(tibble)
+library(ggrepel)
+library(tidyr)
+library(stringr)
+library(cowplot)
+```
+
+# Module presevation calculation (cfRNA modules => cell specific scRNA data)
+***
+
+```{r cfmp, warning=F, message=F}
+enableWGCNAThreads(nThreads=8) 
+dir.create("./scrna/results/cf_mp/", recursive = T)
+load("./cfrna/results/wgcna_main/cfwgcna.RData")
+load("./scrna/data/input/sc_plots.RData")
+for (i in unique(metacell_seurat$cell_type)) {
+#get cell specific data
+metacell_subset<-subset(x = metacell_seurat, subset = cell_type %in% i)
+#keep 5000 most variable genes
+metacell_subset <- FindVariableFeatures(metacell_subset, nfeatures = 5000)
+genes.keep <- VariableFeatures(metacell_subset)
+metacell_input <- t(as.data.frame(GetAssayData(metacell_subset, assay='RNA', slot='data')[genes.keep,]))
+setLabels <- c("cfRNA", "scRNA") 
+multiExpr <- list(cfRNA = list(data = cfrna_wgcna_input), scRNA = list(data = metacell_input))
+multiColor <- list(cfRNA = cfmergedcolors)
+mp_cf_sc <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nPermutations = 100, randomSeed = 1, quickCor = 0, maxModuleSize=5000, maxGoldModuleSize=5000, parallelCalculation=T)
+ref <- 1 
+test <- 2 
+statsZ_all <- cbind(mp_cf_sc$quality$Z[[ref]][[test]][, -1], mp_cf_sc$preservation$Z[[ref]][[test]][, -1])
+save(statsZ_all, file=paste0("./scrna/results/cf_mp/", i, "_", "statsZ.RData"))
+}
+```
+
+# Module presevation calculation (exoRNA modules => cell specific scRNA data)
+***
+
+```{r exomp, warning=F, message=F}
+enableWGCNAThreads(nThreads=8) 
+dir.create("./scrna/results/exo_mp/")
+load("./exorna/results/wgcna_main/exowgcna.RData")
+load("./scrna/data/input/sc_plots.RData")
+for (i in unique(metacell_seurat$cell_type)) {
+#get cell specific data
+metacell_subset<-subset(x = metacell_seurat, subset = cell_type %in% i)
+#keep 5000 most variable genes
+metacell_subset <- FindVariableFeatures(metacell_subset, nfeatures = 5000)
+genes.keep <- VariableFeatures(metacell_subset)
+metacell_input <- t(as.data.frame(GetAssayData(metacell_subset, assay='RNA', slot='data')[genes.keep,]))
+setLabels <- c("cfRNA", "scRNA") 
+multiExpr <- list(exoRNA = list(data = exorna_wgcna_input), scRNA = list(data = metacell_input))
+multiColor <- list(exoRNA = exomergedcolors)
+mp_exo_sc <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nPermutations = 100, randomSeed = 1, quickCor = 0, maxModuleSize=5500, maxGoldModuleSize=5500, parallelCalculation=T)
+ref <- 1 
+test <- 2 
+statsZ_all <- cbind(mp_exo_sc$quality$Z[[ref]][[test]][, -1], mp_exo_sc$preservation$Z[[ref]][[test]][, -1])
+save(statsZ_all, file=paste0("./scrna/results/exo_mp/", i, "_", "statsZ.RData"))
+}
+```
+
+```{r}
+sessionInfo()
+```

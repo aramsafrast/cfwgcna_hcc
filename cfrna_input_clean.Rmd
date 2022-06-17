@@ -1,0 +1,144 @@
+---
+title: "Preprocessing of plasma cfRNA samples from healthy donors and hepatocellular carcinoma (hcc) patients"
+subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
+author: "Aram Safrastyan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    keep_md: yes
+    toc: TRUE
+    code_folding: hide
+    number_sections: TRUE
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# load libraries
+***
+
+```{r libraries, message=F, warning=F}
+library(DESeq2)
+library(stringr)
+library(dplyr)
+library(biomaRt)
+library(XML)
+library(reutils)
+library(tidyr)
+library(DT)
+```
+
+#  Download the data (GSE142987)
+***
+
+```{bash download, message=F, warning=F}
+#download the cfRNA count matrix
+mkdir -p ./cfrna/data/raw
+wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE142nnn/GSE142987/suppl/GSE142987_sample_count_matrix.txt.gz | gunzip -c > ./cfrna/data/raw/cfrna_countm.txt
+#download the metadata
+wget -q -nv -O ./cfrna/data/raw/cfrna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=SRP239389"
+```
+
+# Sample metadata construction 
+***
+
+```{r metadata, message=F, warning=F}
+cfrna_metadata_init <- read.csv("./cfrna/data/raw/cfrna_metadata_init.csv")
+cfrna_metadata_xml <- efetch(c(cfrna_metadata_init$Run), "sra")
+cfrna_metadata_xml_cont<-content(cfrna_metadata_xml)
+cfrna_metadata_full<-xmlToDataFrame(nodes = getNodeSet(cfrna_metadata_xml_cont, "//SAMPLE_ATTRIBUTES/SAMPLE_ATTRIBUTE"))
+cfrna_metadata_full$samples<-rep(cfrna_metadata_init$Run, each=6)
+cfrna_metadata<-cfrna_metadata_full %>% 
+  pivot_wider(names_from = TAG, values_from = VALUE)
+names(cfrna_metadata)[3]<-"disease_state"
+cfrna_metadata$age<-as.numeric(cfrna_metadata$age)
+```
+
+#  Cleanup 
+***
+
+```{r clean, message=F, warning=F}
+#load dataset
+cfrna_countm <- read.delim("./cfrna/data/raw/cfrna_countm.txt", comment.char="#")
+#sort the sample names
+cfrna_countm<-cfrna_countm[, str_sort(names(cfrna_countm), numeric = TRUE)]
+#transfer gene IDs from column to rownames
+rownames(cfrna_countm) <- cfrna_countm$Sample_name
+cfrna_countm<-cfrna_countm %>% 
+  dplyr::select(-Sample_name)
+#shorten and sort new ample names
+names(cfrna_countm)<-c(seq(575, 604), seq(540, 574))
+cfrna_countm<-cfrna_countm[ , order(names(cfrna_countm))]
+#initial dimensions of the data
+dim(cfrna_countm)
+#synchronize metadata sample names with count matrix sample names
+cfrna_metadata$samples<-str_remove(cfrna_metadata$samples, "SRR10822")
+```
+
+#  Normalization and filtering in DESeq2 
+***
+
+```{r deseq, message=F, warning=F, fig.width= 15, fig.height=8}
+#input gene expression and metadata into DESeq2 format with the experimental design set to healthy/disease
+dds <- DESeq2::DESeqDataSetFromMatrix(countData = as.matrix(cfrna_countm),
+                                         colData = as.data.frame(cfrna_metadata),
+                                         design = ~ disease_state)
+#estimate size (normalization) factors
+dds <- estimateSizeFactors(dds)
+#from the normalized data filter out genes with low expression and keep genes with expression of 5 and higher in at least 90% of samples
+idx <- rowSums( counts(dds, normalized=TRUE) >= 5 ) >= ncol(cfrna_countm) * 90/100
+dds <- dds[idx,]
+#get the variance stabilized data
+dds<-estimateDispersions(dds)
+cfrna_vst<-getVarianceStabilizedData(dds)
+#check dimensions 
+dim(cfrna_vst)
+#view sample metadata
+datatable(cfrna_metadata, caption = 'cfRNA sample characteristics')
+```
+
+#  Getting gene names  
+***
+
+```{r biomart, message=F, warning=F, fig.width= 15, fig.height=8}
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+genes<-rownames(cfrna_vst)
+#remove version number
+genes_clean<-gsub("\\..*","",genes)
+#define the dataset to use for conversion
+mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+#get the hgnc symbols of genes
+gene_IDs <- getBM(filters= "ensembl_gene_id", attributes= c("hgnc_symbol", "ensembl_gene_id"), values = genes_clean, mart= mart)
+#convert the matrix to dataframe for easier data wrangling
+cfrna_vst_df<-as.data.frame(cfrna_vst)
+#get the gene IDs into a column
+cfrna_vst_df$genes<-genes_clean
+#transfer the gene names into the main dataset
+cfrna_vst_merge<-merge(cfrna_vst_df, gene_IDs, by.x="genes", by.y="ensembl_gene_id")
+#some genes to not have names - substitute the empty spaces with NA
+cfrna_vst_merge <- cfrna_vst_merge %>% 
+  mutate_all(na_if,"")
+#create a new column where we will have the gene names and when names = NA instead we will have gene IDs
+cfrna_vst_merge$gene_new<-ifelse(is.na(cfrna_vst_merge$hgnc_symbol), cfrna_vst_merge$genes, cfrna_vst_merge$hgnc_symbol)
+#update the rownames
+cfrna_vst_merge<-cfrna_vst_merge[!duplicated(cfrna_vst_merge$gene_new), ]
+rownames(cfrna_vst_merge) <- cfrna_vst_merge$gene_new
+#drop the now unnecessary columns
+cfrna_vst_merge <- cfrna_vst_merge %>% 
+  dplyr::select(-c(genes, hgnc_symbol, gene_new))
+#transform the dataset into a matrix suitable for WGCNA
+cfrna_wgcna<- t(as.matrix(cfrna_vst_merge))
+#final dimensions of the input data
+dim(cfrna_wgcna)
+dir.create("./cfrna/data/input/")
+save(cfrna_wgcna, cfrna_metadata, file="./cfrna/data/input/cfrna_input.RData")
+```
+
+```{r}
+sessionInfo()
+```
