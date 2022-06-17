@@ -7,6 +7,6 @@ The .Rmd files in the folder *markdown* need to be run in the following order:
 2. cf_wgcna.Rmd
 3. exorna_input_clean.Rmd
 4. exo_wgcna.Rmd
-5. mp_sc.Rmd (optional as it is resource intensive)
+5. mp_sc.Rmd (note that it is resource intensive)
 
 Afterwards, the .Rmd files to generate figures can be run in any desired order. 
