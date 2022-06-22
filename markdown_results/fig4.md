@@ -2,7 +2,7 @@
 title: "Generation of main Fig. 4"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
 author: "Aram Safrastyan"
-date: "17 Juni, 2022"
+date: "22 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -138,14 +138,13 @@ cfmp_long<-cfmp_df %>%
 cfmp_long$cell <-recode(cfmp_long$cell, t_cells = "T cells", 'NK_cells'="NK-like cells", Erythroid="Erythroid cells", b_cells="Mature B cells", Plasma_cells="Plasma cells", Portal="Portal endothelial cells")
 cf_heatmap<-ggplot(cfmp_long, aes(x = cell, y = modules)) +
   geom_tile(color = "black", aes(fill = value)) + theme_classic(base_size = 25) + 
-  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,17), na.value="grey95") +
+  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,17), na.value="grey95", name="Zsum") +
   labs(x = "", y = "", fill="cor") +
   scale_x_discrete(expand = c(0,0))+
   scale_y_discrete(expand = c(0,0), position = "right") + 
   ggtitle("cfRNA module preservation", subtitle = "scRNA dataset") + 
   theme(
     text=element_text(family="Arial"),
-    legend.title=element_blank(),
     legend.position="left",
     legend.title.align=0.5,
     legend.key = element_rect(fill = "lightblue", color = NA),

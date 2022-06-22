@@ -2,7 +2,7 @@
 title: "Generation of Supp. Fig. 4 & 5"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, MacParland et al. https://doi.org/10.1038/s41467-018-06318-7 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
-date: "17 Juni, 2022"
+date: "22 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -130,7 +130,7 @@ plot(supp_fig5)
 ```r
 dir.create("./cfrna/plots/supp_plots/")
 #save
-ggsave(plot=supp_fig5, file="./plots/supp_plots/supp_fig5.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=supp_fig5, file="./figures/supp_figures/supp_fig5.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 # Generation of Supplementary Figure 6C-E
@@ -237,12 +237,11 @@ exomp_long<-exomp_df %>%
 exomp_long$cell <-recode(exomp_long$cell, t_cells = "T cells", 'NK_cells'="NK-like cells", Erythroid="Erythroid cells", b_cells="Mature B cells", Plasma_cells="Plasma cells", Portal="Portal endothelial cells")
 exo_heatmap<-ggplot(exomp_long, aes(x = cell, y = modules)) +
   geom_tile(color = "black", aes(fill = value)) + theme_classic(base_size = 24) + 
-  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,20), na.value="grey95") +
+  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,20), na.value="grey95", name="Zsum") +
   labs(x = "", y = "", fill="cor") +
   scale_x_discrete(expand = c(0,0))+
   scale_y_discrete(expand = c(0,0), position = "right") + 
-  theme(legend.title=element_blank(),
-    legend.position="left",
+  theme(legend.position="left",
     legend.title.align=0.5,
     legend.key = element_rect(fill = "lightblue", color = NA),
     legend.key.size = unit(1, "cm"),
@@ -276,8 +275,14 @@ supp_fig6_1<-ggdraw() +
 supp_fig6<-ggdraw() + 
   draw_plot(supp_fig6_1, x=0, y=0.33, width=1, height = .67) + draw_plot(brown_kegg_plot, x=0, y=0, width=.5, height = .33) + draw_plot(brown_wp_plot, x=.5, y=0, width=.5, height = .33) + 
   draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 38, x = c(0, 0, 0.5, 0, 0.5), y = c(1, 0.67, 0.67, 0.33, 0.33), family = "Arial") 
-#dir.create("/<.scrna/plots/main_plots/")
-ggsave(plot=supp_fig6, file="./plots/supp_plots/supp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
+plot(supp_fig6)
+```
+
+<img src="supp_fig5_6_files/figure-html/paths2-1.png" style="display: block; margin: auto;" />
+
+```r
+#dir.create("/.scrna/plots/main_plots/")
+ggsave(plot=supp_fig6, file="./figures/supp_figuressupp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 

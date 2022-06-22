@@ -228,12 +228,11 @@ exomp_long<-exomp_df %>%
 exomp_long$cell <-recode(exomp_long$cell, t_cells = "T cells", 'NK_cells'="NK-like cells", Erythroid="Erythroid cells", b_cells="Mature B cells", Plasma_cells="Plasma cells", Portal="Portal endothelial cells")
 exo_heatmap<-ggplot(exomp_long, aes(x = cell, y = modules)) +
   geom_tile(color = "black", aes(fill = value)) + theme_classic(base_size = 24) + 
-  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,20), na.value="grey95") +
+  scale_fill_distiller(palette = "YlGnBu", direction=1, limits=c(2,20), na.value="grey95", name="Zsum") +
   labs(x = "", y = "", fill="cor") +
   scale_x_discrete(expand = c(0,0))+
   scale_y_discrete(expand = c(0,0), position = "right") + 
-  theme(legend.title=element_blank(),
-    legend.position="left",
+  theme(legend.position="left",
     legend.title.align=0.5,
     legend.key = element_rect(fill = "lightblue", color = NA),
     legend.key.size = unit(1, "cm"),
