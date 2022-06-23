@@ -4,7 +4,7 @@ knit: (function(inputFile, encoding) {
 title: "Generation of main Fig. 1"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
-date: "23 Juni, 2022"
+date: "24 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -20,6 +20,8 @@ output:
   margin-right: auto;
 }
 </style>
+
+
 
 # load libraries
 ***
@@ -98,7 +100,7 @@ heatmap_full <- heatmap_core +
 print(heatmap_full)
 ```
 
-<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/corr-1.png" style="display: block; margin: auto;" />
+<img src="./markdown_results/corr-1.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1B,C
 ***
@@ -142,7 +144,7 @@ blue<-geneModuleMembership %>%
 blue
 ```
 
-<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/mm-1.png" style="display: block; margin: auto;" />
+<img src="./markdown_results/mm-1.png" style="display: block; margin: auto;" />
 
 ```r
 #choose the module with the highest positive correlation with disease condition
@@ -165,7 +167,7 @@ turq<-geneModuleMembership %>%
 turq
 ```
 
-<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/mm-2.png" style="display: block; margin: auto;" />
+<img src="./markdown_results/mm-2.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1
 ***
@@ -181,7 +183,7 @@ fig1<-ggdraw() +
 fig1
 ```
 
-<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/fig1-1.png" style="display: block; margin: auto;" />
+<img src="./markdown_results/fig1-1.png" style="display: block; margin: auto;" />
 
 ```r
 dir.create("./figures/")
