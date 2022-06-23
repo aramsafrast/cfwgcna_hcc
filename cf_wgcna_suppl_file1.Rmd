@@ -1,5 +1,7 @@
 ---
-title: "WGCNA of cfRNA samples"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
+title: "WGCNA of cfRNA samples & generation of Suppl. File 1"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -19,10 +21,7 @@ output:
 }
 </style>
 
-# Weighted gene co-expression analysis of all plasma cfRNA samples - healhty cohort + hcc cohort
-***
-
-## load libraries
+# load libraries
 ***
 
 ```{r libraries, message=F, warning=F}
@@ -64,8 +63,8 @@ cfrna_wgcna_input<-cfrna_wgcna[clust %in% c(1,2), ]
 dim(cfrna_wgcna_input)
 ```
 
-## WGCNA 
-### picking a power value
+# WGCNA 
+## picking a power value
 ***
 
 ```{r power, warning=FALSE, message=FALSE, fig.width= 15, fig.height=8}
@@ -97,7 +96,7 @@ cfrna_param<-ggdraw() + draw_plot(rsq, x=0, y=0, width = .5, height=1) + draw_pl
 plot(cfrna_param)
 ```
 
-### main steps of WGCNA
+## main steps of WGCNA
 * build adjacency matrix with the power value 
 * calculate TOM and transform it to a disTOM
 * hierarchical clustering
@@ -194,25 +193,21 @@ dir.create("./cfrna/results/wgcna_main/")
 save(cfrna_wgcna_input, cfrna_meta_input, cfmergedcolors, cfrna_param, cfrna_bar, file="./cfrna/results/wgcna_main/cfwgcna.RData")
 ```
 
-### Exporting modules (Cytoscape preparation)
+# Exporting modules (Cytoscape preparation)
 ***
 
 ```{r modules, message=F, warning=F}
 dir.create("./cfrna/results/cytoscape/")
 options(stringsAsFactors = FALSE)
-probes = colnames(cfrna_wgcna_input)
-module <- unique(cfmergedcolors)
-for (modules in module) {
-  inModule = is.finite(match(cfmergedcolors, modules))
-  modProbes = probes[inModule]
-  modadj = adjacency[inModule, inModule]
-  dimnames(modadj) = list(modProbes, modProbes)
-  modadj = as.table(modadj)
-  nTop = 30; 
-  IMConn = softConnectivity(cfrna_wgcna_input[, modProbes]);
-  top = (rank(-IMConn) <= nTop)
-  modTOM = TOM[inModule, inModule]
-  cyt = exportNetworkToCytoscape(modTOM[top, top],
+probes <- colnames(cfrna_wgcna_input)
+for (modules in c("cf-blue", "cf-turquoise")) {
+  inModule <- is.finite(match(cfmergedcolors, modules))
+  modProbes <- probes[inModule]
+  nTop <- 30 
+  IMConn <- softConnectivity(cfrna_wgcna_input[, modProbes], type = "unsigned", power = 6)
+  top <- (rank(-IMConn) <= nTop)
+  modTOM <- TOM[inModule, inModule]
+  cyt <- exportNetworkToCytoscape(modTOM[top, top],
                                  edgeFile = paste("./cfrna/results/modules/edges_", modules, ".txt", sep=""),
                                  nodeFile = paste("./cfrna/results/modules/nodes_", modules, ".txt", sep=""),
                                  weighted = TRUE,
@@ -220,6 +215,27 @@ for (modules in module) {
                                  nodeNames = modProbes[top],
                                  nodeAttr = cfmergedcolors[inModule][top])
 }
+```
+
+# Generation of Supplementary File 1
+***
+
+```{r supp_file, warning=F, message=F}
+#export 50 top hub genes per module based on absolute values of gene connectivity 
+dataset_names <- list()
+m <- 0
+module <- unique(cfmergedcolors)
+module <- module[module != "grey"]
+for (modules in module) {
+  m <- m + 1
+  inModule <- is.finite(match(cfmergedcolors, modules))
+  modProbes <- probes[inModule]
+  IMConn <- softConnectivity(cfrna_wgcna_input[, modProbes], type = "unsigned", power = 6)
+  df_temp <- data.frame(genes=modProbes, module = modules, connectivity=IMConn)
+  dataset_names[[m]] <- df_temp %>% top_n(., 50, connectivity) %>% arrange(., desc(connectivity))
+}
+dir.create("./suppl_files/")
+write.xlsx(dataset_names, sheetName = module, file = './suppl_files/supplementary_file1.xlsx') 
 ```
 
 ```{r}

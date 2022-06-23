@@ -2,7 +2,7 @@
 title: "Generation of Supp. Fig. 4 & 5"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, MacParland et al. https://doi.org/10.1038/s41467-018-06318-7 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
-date: "22 Juni, 2022"
+date: "23 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -282,7 +282,7 @@ plot(supp_fig6)
 
 ```r
 #dir.create("/.scrna/plots/main_plots/")
-ggsave(plot=supp_fig6, file="./figures/supp_figuressupp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=supp_fig6, file="./figures/supp_figures/supp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 

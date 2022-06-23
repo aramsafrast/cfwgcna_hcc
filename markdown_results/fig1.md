@@ -1,8 +1,10 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 1"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
-date: "16 Juni, 2022"
+date: "23 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -34,6 +36,9 @@ library(tidyr)
 library(ragg)
 library(scales)
 library(forcats)
+library(stringr)
+library(openxlsx)
+library(DT)
 ```
 
 # Generation of Fig. 1A
@@ -93,7 +98,7 @@ heatmap_full <- heatmap_core +
 print(heatmap_full)
 ```
 
-<img src="fig1_files/figure-html/corr-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/corr-1.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1B,C
 ***
@@ -137,7 +142,7 @@ blue<-geneModuleMembership %>%
 blue
 ```
 
-<img src="fig1_files/figure-html/mm-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/mm-1.png" style="display: block; margin: auto;" />
 
 ```r
 #choose the module with the highest positive correlation with disease condition
@@ -160,7 +165,7 @@ turq<-geneModuleMembership %>%
 turq
 ```
 
-<img src="fig1_files/figure-html/mm-2.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/mm-2.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1
 ***
@@ -176,12 +181,12 @@ fig1<-ggdraw() +
 fig1
 ```
 
-<img src="fig1_files/figure-html/fig1-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig1_files/figure-html/fig1-1.png" style="display: block; margin: auto;" />
 
 ```r
-dir.create("./plots/")
-dir.create("./plots/main_plots/")
-ggsave(plot=fig1, file="./plots/main_plots/fig1.png", units = "mm", device = ragg::agg_png, height=100, width=180, scaling = 0.445, limitsize = FALSE)
+dir.create("./figures/")
+dir.create("./figures/main_figures/")
+ggsave(plot=fig1, file="./figures/main_figures/fig1.png", units = "mm", device = ragg::agg_png, height=100, width=180, scaling = 0.445, limitsize = FALSE)
 ```
 
 
@@ -210,10 +215,11 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] forcats_0.5.1         scales_1.2.0          ragg_1.2.2           
-##  [4] tidyr_1.2.0           ggrepel_0.9.1         tibble_3.1.7         
-##  [7] ggplot2_3.3.6         cowplot_1.1.1         dplyr_1.0.9          
-## [10] WGCNA_1.71            fastcluster_1.2.3     dynamicTreeCut_1.63-1
+##  [1] DT_0.23               openxlsx_4.2.5        stringr_1.4.0        
+##  [4] forcats_0.5.1         scales_1.2.0          ragg_1.2.2           
+##  [7] tidyr_1.2.0           ggrepel_0.9.1         tibble_3.1.7         
+## [10] ggplot2_3.3.6         cowplot_1.1.1         dplyr_1.0.9          
+## [13] WGCNA_1.71            fastcluster_1.2.3     dynamicTreeCut_1.63-1
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] nlme_3.1-155           bitops_1.0-7           matrixStats_0.62.0    
@@ -227,13 +233,13 @@ sessionInfo()
 ## [25] bit_4.0.4              compiler_4.1.2         textshaping_0.3.6     
 ## [28] cli_3.3.0              Biobase_2.54.0         htmlTable_2.4.0       
 ## [31] labeling_0.4.2         sass_0.4.1             checkmate_2.1.0       
-## [34] systemfonts_1.0.4      stringr_1.4.0          digest_0.6.29         
-## [37] foreign_0.8-82         rmarkdown_2.14         XVector_0.34.0        
-## [40] base64enc_0.1-3        jpeg_0.1-9             pkgconfig_2.0.3       
-## [43] htmltools_0.5.2        highr_0.9              fastmap_1.1.0         
-## [46] htmlwidgets_1.5.4      rlang_1.0.2            impute_1.68.0         
-## [49] rstudioapi_0.13        RSQLite_2.2.14         farver_2.1.0          
-## [52] jquerylib_0.1.4        generics_0.1.2         jsonlite_1.8.0        
+## [34] systemfonts_1.0.4      digest_0.6.29          foreign_0.8-82        
+## [37] rmarkdown_2.14         XVector_0.34.0         base64enc_0.1-3       
+## [40] jpeg_0.1-9             pkgconfig_2.0.3        htmltools_0.5.2       
+## [43] highr_0.9              fastmap_1.1.0          htmlwidgets_1.5.4     
+## [46] rlang_1.0.2            impute_1.68.0          rstudioapi_0.13       
+## [49] RSQLite_2.2.14         farver_2.1.0           jquerylib_0.1.4       
+## [52] generics_0.1.2         jsonlite_1.8.0         zip_2.2.0             
 ## [55] RCurl_1.98-1.7         magrittr_2.0.3         GO.db_3.14.0          
 ## [58] GenomeInfoDbData_1.2.7 Formula_1.2-4          Matrix_1.4-0          
 ## [61] Rcpp_1.0.8.3           munsell_0.5.0          S4Vectors_0.32.4      

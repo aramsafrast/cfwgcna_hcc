@@ -1,4 +1,6 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 3 and Supp. Fig. 4"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
@@ -40,7 +42,7 @@ library(cowplot)
 ## warning - resource intensive! 
 ***
 
-```{r cfmp, eval=F, warning=F, message=F}
+```{r cfmp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
 load("./cfrna/results/wgcna_main/cfwgcna.RData")
 load("./exorna/results/wgcna_main/exowgcna.RData")
@@ -54,7 +56,7 @@ mp_cf_exo <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nP
 ***
 
 ```{r cfmp_plot, warning=F, message=F, fig.width= 8, fig.height=5, fig.align='center'}
-load("./cfrna/results/mp_cf_exo/mp_cf_exo.RData")
+#load("./cfrna/results/mp_cf_exo/mp_cf_exo.RData")
 #get module size and Zsum connectivity statistics 
 ref <-  1
 test <- 2
@@ -126,7 +128,7 @@ ggsave(plot=fig3, "./figures/main_figuresfig3.png", scale=1, units = "mm", width
 ## warning resource intensive!
 ***
 
-```{r exomp, eval=F, warning=F, message=F}
+```{r exomp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
 setLabels <- c("exoRNA", "cfRNA")
 multiExpr <- list(exorRNA = list(data = exorna_wgcna_input), cfRNA = list(data = cfrna_wgcna_input) )
@@ -138,7 +140,7 @@ mp_exo_cf <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nP
 ***
 
 ```{r exomp_plot, message=F, warning=F, fig.width= 8, fig.height=5, fig.align='center'}
-load("./exorna/results/mp_exo_cf/mp_exo_cf.RData")
+#load("./exorna/results/mp_exo_cf/mp_exo_cf.RData")
 #get module size and Zsum connectivity statistics 
 ref <-  1
 test <- 2

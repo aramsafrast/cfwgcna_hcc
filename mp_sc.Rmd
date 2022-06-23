@@ -1,4 +1,6 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "cfRNA & exoRNA module preservation analysis in scRNA data"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, Li et al. https://doi.org/10.1093/nar/gkx891 & MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
 author: "Aram Safrastyan"
@@ -38,14 +40,14 @@ library(cowplot)
 ```
 
 # Module presevation calculation (cfRNA modules => cell specific scRNA data)
-## warning - resource intensive!the generated files are available
+## warning - resource intensive
 ***
 
 ```{r cfmp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
 dir.create("./scrna/results/cf_mp/", recursive = T)
-load("./cfrna/results/wgcna_main/cfwgcna.RData")
-load("./scrna/data/input/sc_plots.RData")
+#load("./cfrna/results/wgcna_main/cfwgcna.RData")
+#load("./scrna/data/input/sc_plots.RData")
 for (i in unique(metacell_seurat$cell_type)) {
 #get cell specific data
 metacell_subset<-subset(x = metacell_seurat, subset = cell_type %in% i)
@@ -65,15 +67,14 @@ save(statsZ_all, file=paste0("./scrna/results/cf_mp/", i, "_", "statsZ.RData"))
 ```
 
 # Module presevation calculation (exoRNA modules => cell specific scRNA data)
-## warning - resource intensive! the generated files are available
-
+## warning - resource intensive
 ***
 
 ```{r exomp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
-dir.create("./scrna/results/exo_mp/")
-load("./exorna/results/wgcna_main/exowgcna.RData")
-load("./scrna/data/input/sc_plots.RData")
+dir.create("./scrna/results/exo_mp/", recursive = T)
+#load("./exorna/results/wgcna_main/exowgcna.RData")
+#load("./scrna/data/input/sc_plots.RData")
 for (i in unique(metacell_seurat$cell_type)) {
 #get cell specific data
 metacell_subset<-subset(x = metacell_seurat, subset = cell_type %in% i)

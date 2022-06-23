@@ -1,4 +1,6 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 1"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
@@ -33,6 +35,9 @@ library(tidyr)
 library(ragg)
 library(scales)
 library(forcats)
+library(stringr)
+library(openxlsx)
+library(DT)
 ```
 
 # Generation of Fig. 1A

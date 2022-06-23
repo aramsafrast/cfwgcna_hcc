@@ -1,4 +1,6 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of Supp. Fig. 4 & 5"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, MacParland et al. https://doi.org/10.1038/s41467-018-06318-7 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
@@ -267,7 +269,7 @@ supp_fig6<-ggdraw() +
   draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 38, x = c(0, 0, 0.5, 0, 0.5), y = c(1, 0.67, 0.67, 0.33, 0.33), family = "Arial") 
 plot(supp_fig6)
 #dir.create("/.scrna/plots/main_plots/")
-ggsave(plot=supp_fig6, file="./figures/supp_figuressupp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
+ggsave(plot=supp_fig6, file="./figures/supp_figures/supp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
 ```{r}

@@ -1,5 +1,7 @@
 ---
-title: "WGCNA of exoRNA samples"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
+title: "WGCNA of exoRNA samples & generation of Suppl. File 2"
 subtitle: "Data of Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -19,10 +21,7 @@ output:
 }
 </style>
 
-# Weighted gene co-expression analysis of blood exoRNA samples - only hcc cohort
-***
-
-## load libraries
+# load libraries
 ***
 
 ```{r libraries, message=F, warning=F}
@@ -41,7 +40,7 @@ library(cowplot)
 library(stringr)
 ```
 
-## Data cleanup 
+# Data cleanup 
 ***
 
 ```{r clean, message=F, warning=F, fig.width= 15, fig.height=8}
@@ -64,8 +63,8 @@ exorna_wgcna_input<-exorna_wgcna[clust==1, ]
 dim(exorna_wgcna_input)
 ```
 
-## WGCNA 
-### picking a power value
+# WGCNA 
+## picking a power value
 ***
 
 ```{r power, warning=FALSE, message=FALSE, fig.width= 15, fig.height=8, fig.align='center'}
@@ -97,7 +96,7 @@ exorna_param<-ggdraw() + draw_plot(rsq, x=0, y=0, width = .5, height=1) + draw_p
 plot(exorna_param)
 ```
 
-## main steps of WGCNA
+# main steps of WGCNA
 * build adjacency matrix with the power value 
 * calculate TOM and transform it to a disTOM
 * hierarchical clustering
@@ -183,6 +182,27 @@ exorna_meta_input<-exorna_metadata[clust==1, ]
 dir.create("./exorna/results/")
 dir.create("./exorna/results/wgcna_main/")
 save(exorna_wgcna_input, exorna_meta_input, exomergedcolors, exorna_param, exorna_bar, file="./exorna/results/wgcna_main/exowgcna.RData")
+```
+
+# Generation of Supplementary File 2
+***
+
+```{r supp_file, warning=F, message=F}
+#export 50 top hub genes per module based on absolute values of module membership
+dataset_names <- list()
+m <- 0
+probes <- colnames(exorna_wgcna_input)
+module <- unique(exomergedcolors)
+module <- module[module != "grey"]
+for (modules in module) {
+  m <- m + 1
+  inModule <- is.finite(match(exomergedcolors, modules))
+  modProbes <- probes[inModule]
+  IMConn <- softConnectivity(exorna_wgcna_input[, modProbes], type = "unsigned", power = 6)
+  df_temp <- data.frame(genes=modProbes, module = modules, connectivity=IMConn)
+  dataset_names[[m]] <- df_temp %>% top_n(., 50, connectivity) %>% arrange(., desc(connectivity))
+}
+write.xlsx(dataset_names, sheetName = module, file = './suppl_files/supplementary_file2.xlsx') 
 ```
 
 ```{r}
