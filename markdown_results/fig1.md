@@ -100,7 +100,7 @@ heatmap_full <- heatmap_core +
 print(heatmap_full)
 ```
 
-<img src="./markdown_results/corr-1.png" style="display: block; margin: auto;" />
+<img src="markdown_results/corr-1.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1B,C
 ***
@@ -144,7 +144,7 @@ blue<-geneModuleMembership %>%
 blue
 ```
 
-<img src="./markdown_results/mm-1.png" style="display: block; margin: auto;" />
+<img src="markdown_results/mm-1.png" style="display: block; margin: auto;" />
 
 ```r
 #choose the module with the highest positive correlation with disease condition
@@ -167,7 +167,7 @@ turq<-geneModuleMembership %>%
 turq
 ```
 
-<img src="./markdown_results/mm-2.png" style="display: block; margin: auto;" />
+<img src="markdown_results/mm-2.png" style="display: block; margin: auto;" />
 
 # Generation of Fig. 1
 ***
@@ -183,7 +183,7 @@ fig1<-ggdraw() +
 fig1
 ```
 
-<img src="./markdown_results/fig1-1.png" style="display: block; margin: auto;" />
+<img src="markdown_results/fig1-1.png" style="display: block; margin: auto;" />
 
 ```r
 dir.create("./figures/")

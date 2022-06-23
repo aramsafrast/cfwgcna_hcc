@@ -22,7 +22,7 @@ output:
 </style>
 
 ```{r global_options, echo = F}
-knitr::opts_chunk$set(fig.path='./markdown_results/')
+knitr::opts_chunk$set(fig.path='markdown_results/')
 ```
 
 # load libraries
