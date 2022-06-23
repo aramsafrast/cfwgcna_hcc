@@ -1,6 +1,4 @@
 ---
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 1"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
