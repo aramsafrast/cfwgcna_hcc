@@ -1,4 +1,6 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of Supp. Fig. 4 & 5"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206, MacParland et al. https://doi.org/10.1038/s41467-018-06318-7 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
@@ -125,7 +127,7 @@ supp_fig5<-ggdraw() + draw_plot(yellow_kegg_plot, x=0, y=0.5, width = .5, height
 plot(supp_fig5)
 ```
 
-<img src="supp_fig5_6_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/supp_fig5_6_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
 
 ```r
 dir.create("./cfrna/plots/supp_plots/")
@@ -278,7 +280,7 @@ supp_fig6<-ggdraw() +
 plot(supp_fig6)
 ```
 
-<img src="supp_fig5_6_files/figure-html/paths2-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/supp_fig5_6_files/figure-html/paths2-1.png" style="display: block; margin: auto;" />
 
 ```r
 #dir.create("/.scrna/plots/main_plots/")
