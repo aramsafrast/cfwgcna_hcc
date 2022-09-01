@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # cfwgcna_hcc
  
 =======
@@ -15,4 +14,3 @@ The *.Rmd* files need to be run in the following order:
 6. mp_sc.Rmd 
 
 Afterwards, the *.Rmd* files used to generate figures can be run in any desired order. 
->>>>>>> 1bc836bda468aad910ee144ae9b8451df15be531
