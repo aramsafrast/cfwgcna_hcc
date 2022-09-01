@@ -1,6 +1,3 @@
-# cfwgcna_hcc
- 
-=======
 # WGCNA analysis of cfRNA data from HCC patients
 
 This repistory is aimed at reproducing the results of the paper "Network analysis of hepatocellular carcinoma liquid biopsies augmented by single-cell sequencing data" https://doi.org/10.3389/fgene.2022.921195 and is written in R. 
