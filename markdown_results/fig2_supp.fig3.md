@@ -1,8 +1,10 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 2 and Supp. Fig. 3"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206"
 author: "Aram Safrastyan"
-date: "17 Juni, 2022"
+date: "24 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -58,8 +60,8 @@ turq_reactome_df<-fortify(turq_reactome, showCategory = 10)
 turq_reactome_df$p.adjust<- -log10(as.numeric(turq_reactome_df$p.adjust))
 turq_reactome_plot<-ggplot(turq_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) + 
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) +  
   scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
@@ -75,12 +77,12 @@ blue_reactome_df<-fortify(blue_reactome, showCategory = 10)
 blue_reactome_df$p.adjust<- -log10(as.numeric(blue_reactome_df$p.adjust))
 blue_reactome_plot<-ggplot(blue_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  + 
-  scale_x_continuous(labels =scales::label_number(accuracy = 0.001), breaks = scales::extended_breaks(n=3)) +   
+  scale_x_continuous(labels =scales::label_number(accuracy = 0.001), breaks = scales::extended_breaks(n=3)) + 
   theme_bw(base_size = 26, base_family = "Arial", base_rect_size = 1, base_line_size = 1) + 
   theme(plot.title = element_text(color="black", size=28, face="bold", hjust = 0.5),
         plot.subtitle = element_text(color="black", size=27, face="bold", hjust = 0.5)) +
@@ -93,7 +95,7 @@ fig2<-ggdraw() + blue_module_plot + turq_module_plot + draw_plot(blue_reactome_p
 plot(fig2)
 ```
 
-<img src="fig2_supp.fig3_files/figure-html/main-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig2_supp.fig3_files/figure-html/main-1.png" style="display: block; margin: auto;" />
 
 ```r
 #save
@@ -113,8 +115,8 @@ turq_kegg_df<-fortify(turq_kegg, showCategory = 10)
 turq_kegg_df$p.adjust<- -log10(as.numeric(turq_kegg_df$p.adjust))
 turq_kegg_plot<-ggplot(turq_kegg_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +   
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   ggtitle(paste0("KEGG pathway enrichment analysis", "\n", "cfRNA module cf-turquoise")) +  
@@ -127,8 +129,8 @@ turq_wp_df<-fortify(turq_wp, showCategory = 10)
 turq_wp_df$p.adjust<- -log10(as.numeric(turq_wp_df$p.adjust))
 turq_wp_plot<-ggplot(turq_wp_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +  
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +  
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
@@ -144,8 +146,8 @@ blue_kegg_df<-fortify(blue_kegg, showCategory = 10)
 blue_kegg_df$p.adjust<- -log10(as.numeric(blue_kegg_df$p.adjust))
 blue_kegg_plot<-ggplot(blue_kegg_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +   
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  + 
@@ -160,8 +162,8 @@ blue_wp_df<-fortify(blue_wp, showCategory = 10)
 blue_wp_df$p.adjust<- -log10(as.numeric(blue_wp_df$p.adjust))
 blue_wp_plot<-ggplot(blue_wp_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +   
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 30))  +   
@@ -174,7 +176,7 @@ supp_fig3<-ggdraw() + draw_plot(blue_kegg_plot, x=0, y=0.5, width = .5, height=.
 plot(supp_fig3)
 ```
 
-<img src="fig2_supp.fig3_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig2_supp.fig3_files/figure-html/supp-1.png" style="display: block; margin: auto;" />
 
 ```r
 dir.create("./figures/supp_figures/")

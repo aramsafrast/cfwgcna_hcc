@@ -1,8 +1,10 @@
 ---
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 4"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
 author: "Aram Safrastyan"
-date: "22 Juni, 2022"
+date: "24 Juni, 2022"
 output:
   html_document: 
     keep_md: yes
@@ -66,8 +68,8 @@ purple_reactome_df$p.adjust<- round(-log10(as.numeric(purple_reactome_df$p.adjus
 purple_reactome_plot_old<-enrichplot::cnetplot(purple_reactome,  color_category = "purple", color_gene = "purple", cex_label_category=1, cex_label_gene=1, showCategory = 5) + theme_void(base_size = 24) +   labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-purple</span>") + theme(text=element_text(family="Arial"), plot.margin = unit(c(0, 0, 0, 0), "cm"), plot.subtitle =  element_markdown(size = 25, face="bold", hjust = 0.5), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5)) + guides(size = guide_legend(reverse=T))
 purple_reactome_plot<-ggplot(purple_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +   
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-purple</span>") +  
@@ -88,8 +90,8 @@ yellow_reactome_plot_old<-enrichplot::cnetplot(yellow_reactome,  color_category 
   labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-yellow</span>") + theme(text=element_text(family="Arial"), plot.margin = unit(c(0, 0, 0, 0), "cm"), plot.subtitle =  element_markdown(size = 25, face="bold", hjust = 0.5), plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5)) + guides(size = guide_legend(reverse=T))
 yellow_reactome_plot<-ggplot(yellow_reactome_df, aes(x = GeneRatio, y = fct_reorder(Description, GeneRatio))) +  
   geom_point(aes(size = Count, color = p.adjust))  +  
-  scale_size_continuous(range = c(8, 15), breaks = pretty_breaks(n=3)) + 
-  scale_colour_gradient(name = "-log10(p.adjust)", low="blue", high="red",  breaks=scales::extended_breaks()) +   
+  scale_size_continuous(range = c(6, 10), breaks = pretty_breaks(n=3)) + 
+  scale_colour_gradient(name = "-log10(p.adjust)", low="grey", high="black",  breaks=scales::extended_breaks()) +   
   guides(size = guide_legend(reverse=T)) + 
   ylab(NULL) + 
   labs(title = "Reactome pathway enrichment analysis", subtitle ="<span style = 'color: red;'>cf-yellow</span>") +  
@@ -180,7 +182,7 @@ fig4<-ggdraw() +
 plot(fig4)
 ```
 
-<img src="fig4_files/figure-html/fig4-1.png" style="display: block; margin: auto;" />
+<img src="/home/bioinf/Desktop/wgcna_manuscript/cfwgcna_hcc/markdown_results/fig4_files/figure-html/fig4-1.png" style="display: block; margin: auto;" />
 
 ```r
 ggsave(plot=fig4, file="./figures/main_figures/fig4.png", units = "mm", device = ragg::agg_png, height=120, width=180, scaling = 0.3, limitsize = FALSE)
