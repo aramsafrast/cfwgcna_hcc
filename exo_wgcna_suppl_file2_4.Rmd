@@ -193,7 +193,7 @@ save(exorna_wgcna_input, exorna_meta_input, exomergedcolors, exorna_param, exorn
 # Generation of Supplementary File 2
 ***
 
-```{r supp_file, warning=F, message=F}
+```{r supp_file2, warning=F, message=F}
 #export 50 top hub genes per module based on absolute values of module membership
 dataset_names <- list()
 m <- 0
@@ -214,7 +214,7 @@ write.xlsx(dataset_names, sheetName = module, file = './suppl_files/supplementar
 # Generation of Supplementary File 4
 ***
 
-```{r supp_file, warning=F, message=F}
+```{r supp_file4, warning=F, message=F}
 #GO Biological process enrichment analysis per module
 dataset_path <- list()
 x <- 0

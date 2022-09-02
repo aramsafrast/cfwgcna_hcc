@@ -203,7 +203,7 @@ save(cfrna_wgcna_input, cfrna_meta_input, cfmergedcolors, cfrna_param, cfrna_bar
 # Exporting modules (Cytoscape preparation)
 ***
 
-```{r modules, message=F, warning=F}
+```{r cytoscape, message=F, warning=F}
 dir.create("./cfrna/results/cytoscape/")
 options(stringsAsFactors = FALSE)
 probes <- colnames(cfrna_wgcna_input)
@@ -227,7 +227,7 @@ for (modules in c("cf-blue", "cf-turquoise")) {
 # Generation of Supplementary File 1
 ***
 
-```{r supp_file, warning=F, message=F}
+```{r supp_file1, warning=F, message=F}
 #export 50 top hub genes per module based on absolute values of gene connectivity 
 dataset_names <- list()
 m <- 0
@@ -248,7 +248,7 @@ write.xlsx(dataset_names, sheetName = module, file = './suppl_files/supplementar
 # Generation of Supplementary File 3
 ***
 
-```{r supp_file, warning=F, message=F}
+```{r supp_file3, warning=F, message=F}
 #GO Biological process enrichment analysis per module
 dataset_path <- list()
 x <- 0
