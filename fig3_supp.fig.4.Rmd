@@ -1,6 +1,4 @@
 ---
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Generation of main Fig. 3 and Supp. Fig. 4"
 subtitle: "Data of Zhu et al. https://doi.org/10.7150%2Fthno.48206 & Li et al. https://doi.org/10.1093/nar/gkx891"
 author: "Aram Safrastyan"
@@ -20,6 +18,10 @@ output:
   margin-right: auto;
 }
 </style>
+
+```{r global_options, echo = F}
+knitr::opts_chunk$set(fig.path='markdown_results/')
+```
 
 # load libraries
 ***
