@@ -1,6 +1,6 @@
 # WGCNA analysis of cfRNA data from HCC patients
 
-This repistory is aimed at reproducing the results of the paper "Network analysis of hepatocellular carcinoma liquid biopsies augmented by single-cell sequencing data" https://doi.org/10.3389/fgene.2022.921195 and is written in R. 
+This repistory is aimed at reproducing the results of the paper [***"Network analysis of hepatocellular carcinoma liquid biopsies augmented by single-cell sequencing data"***](https://doi.org/10.3389/fgene.2022.921195). Front. Genet. 13:921195. The code is written in R language. 
 
 The *.Rmd* files need to be run in the following order:
 1. cfrna_input_clean.Rmd
