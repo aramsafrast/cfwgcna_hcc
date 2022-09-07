@@ -123,7 +123,7 @@ fig3<-ggdraw(ylim=c(0.5, 1), clip = "on") +
   draw_plot_label(label = c("A", "B"), size = 12,
                   x = c(0, 0.5), y = c(1, 1), family = "Arial") 
 fig3
-ggsave(plot=fig3, "./figures/main_figuresfig3.png", scale=1, units = "mm", width=180, height=70)
+ggsave(plot=fig3, "./figures/main_figures/fig3.png", scale=1, units = "mm", width=180, height=70)
 ```
 
 # Module presevation calculation (exoRNA modules => cfRNA data)
