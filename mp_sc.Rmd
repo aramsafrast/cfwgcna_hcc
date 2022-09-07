@@ -46,7 +46,7 @@ library(cowplot)
 ```{r cfmp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
 dir.create("./scrna/results/cf_mp/", recursive = T)
-#load("./cfrna/results/wgcna_main/cfwgcna.RData")
+load("./cfrna/results/wgcna_main/cfwgcna.RData")
 #load("./scrna/data/input/sc_plots.RData")
 for (i in unique(metacell_seurat$cell_type)) {
 #get cell specific data
@@ -73,7 +73,7 @@ save(statsZ_all, file=paste0("./scrna/results/cf_mp/", i, "_", "statsZ.RData"))
 ```{r exomp, warning=F, message=F}
 enableWGCNAThreads(nThreads=8) 
 dir.create("./scrna/results/exo_mp/", recursive = T)
-#load("./exorna/results/wgcna_main/exowgcna.RData")
+load("./exorna/results/wgcna_main/exowgcna.RData")
 #load("./scrna/data/input/sc_plots.RData")
 for (i in unique(metacell_seurat$cell_type)) {
 #get cell specific data
