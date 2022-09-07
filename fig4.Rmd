@@ -123,11 +123,11 @@ nk<-statsZ_all$Zsummary.pres
 load("./scrna/results/cf_mp/T_Cells_statsZ.RData")
 t<-statsZ_all$Zsummary.pres
 load("./scrna/results/cf_mp/Plasma_Cells_statsZ.RData")
-p<-statsZ_all$Zsummary.pres
+pl<-statsZ_all$Zsummary.pres
 load("./scrna/results/cf_mp/Erythroid_Cells_statsZ.RData")
-e<-statsZ_all$Zsummary.pres
+er<-statsZ_all$Zsummary.pres
 #merge, clean and plot the data
-cfmp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=e, Cholangiocytes=chl, Plasma_cells=p)
+cfmp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=er, Cholangiocytes=chl, Plasma_cells=pl)
 cfmp_df$module<-paste0("cf-", "", cfmp_df$module)
 rownames(cfmp_df)<-cfmp_df$module 
 cfmp_df<-cfmp_df  %>%  
