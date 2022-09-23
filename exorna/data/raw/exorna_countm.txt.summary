@@ -1,0 +1,15 @@
+Status	./exorna/data/raw/map/516Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/517Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/518Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/519Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/520Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/521Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/522Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/523Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/524Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/525Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/526Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/527Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/528Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/529Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/530Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/531Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/532Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/533Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/534Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/535Aligned.sortedByCoord.out.bam	./exorna/data/raw/map/536Aligned.sortedByCoord.out.bam
+Assigned	7878039	8871487	11662854	12153487	8392431	9079323	10116876	10534583	8380757	9053201	5968878	6235167	6913778	7838025	8779400	7917631	8029551	7279983	7894854	10197671	9735088
+Unassigned_Unmapped	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	8159163	8409269	16665228	14669542	9425339	6455943	5563951	6904286	6679691	4234894	5402723	12624583	8422457	7589739	6306381	6443699	5839907	5588830	7290900	7372440	7357359
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	668651	711946	619994	598833	485682	678863	868366	1150487	601237	813885	411839	381934	365956	479443	655645	436660	694346	538870	693542	640361	599981
+Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Ambiguity	796302	1091292	1624773	1567465	1007334	808178	847808	918004	863799	722916	673121	1084770	773938	992744	852854	931495	1101971	824828	737779	1066314	936542

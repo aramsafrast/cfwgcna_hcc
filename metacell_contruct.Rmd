@@ -1,6 +1,4 @@
 ---
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "./markdown_results") })
 title: "Preprocessing of single-cell RNA samples from livers of healthy donors"
 subtitle: "Data of MacParland et al. https://doi.org/10.1038/s41467-018-06318-7"
 author: "Aram Safrastyan"
@@ -21,11 +19,15 @@ output:
 }
 </style>
 
+```{r global_options, echo = F}
+knitr::opts_chunk$set(fig.path='markdown_results/')
+```
+
 # load libraries
 ***
 
 ```{r, message=F, warning=F}
-library(scWGCNA)
+#library(scWGCNA)
 library(cowplot)
 library(ggplot2)
 library(dplyr)
@@ -42,9 +44,9 @@ library(BiocParallel)
 ```{bash download, message=F, warning=F}
 #download the scRNA count matrix
 mkdir -p ./scrna/data/raw/
-wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_Data.csv.gz | gunzip -c > ./scrna/data/raw/scrna_countm.txt 
+wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_Data.csv.gz | gunzip -c > ./scrna/data/raw/scrna_countm.csv 
 #download the metadata
-wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_CellClusterType.txt.gz | gunzip -c > ./scrna/data/raw/scrna_metadata_init.csv 
+wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/GSE115469_CellClusterType.txt.gz | gunzip -c > ./scrna/data/raw/scrna_metadata_init.txt 
 ```
 
 # Data cleanup; normalization
@@ -54,8 +56,8 @@ wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE115nnn/GSE115469/suppl/G
 #set seed for reproducible UMAP calculations
 set.seed(1)
 #load data into Seurat
-ref <- read.csv("./scrna/data/raw/scrna_countm.txt")
-ref.txt <- read.delim("./scrna/data/raw/scrna_metadata_init.csv")
+ref <- read.csv("./scrna/data/raw/scrna_countm.csv")
+ref.txt <- read.delim("./scrna/data/raw/scrna_metadata_init.txt")
 #merge cell subtypes
 ref.txt$CellType<-ifelse(grepl("Hepatocyte",ref.txt$CellType),"Hepatocyte",ref.txt$CellType)
 ref.txt$CellType<-ifelse(grepl("T_Cells",ref.txt$CellType),"T_Cells",ref.txt$CellType)
@@ -72,10 +74,9 @@ sobject <- RunPCA(sobject, features = VariableFeatures(object = sobject))
 sobject <- FindNeighbors(sobject)
 sobject <- FindClusters(sobject)
 sobject <- RunUMAP(sobject,  features = VariableFeatures(object = sobject))
-sobject@meta.data$cell_type_clean <- sobject@meta.data$cell_type
-sobject@meta.data$cell_type_clean <-recode(sobject@meta.data$cell_type_clean, Hepatocyte="Hepatocytes", T_Cells = "T cells", Macrophage="Macrophages", 'NK-like_Cells'="NK-like cells", Erythroid_Cells="Erythroid cells", Mature_B_Cells="Mature B cells", Plasma_Cells="Plasma cells", Portal_endothelial_Cells="Portal endothelial cells", Hepatic_Stellate_Cells="Hepatic stellate cells")
+sobject@meta.data$cell_type <-recode(sobject@meta.data$cell_type, Hepatocyte="Hepatocytes", T_Cells = "T cells", Macrophage="Macrophages", 'NK-like_Cells'="NK-like cells", Erythroid_Cells="Erythroid cells", Mature_B_Cells="Mature B cells", Plasma_Cells="Plasma cells", Portal_endothelial_Cells="Portal endothelial cells", Hepatic_Stellate_Cells="Hepatic stellate cells")
 options(ggrepel.max.overlaps = Inf)
-raw_sc_plot<-DimPlot(sobject, reduction = "umap", label = TRUE, repel = TRUE, label.size = 10, group.by = "cell_type_clean", combine = TRUE) +  
+raw_sc_plot<-DimPlot(sobject, reduction = "umap", label = TRUE, repel = TRUE, label.size = 10, group.by = "cell_type", combine = TRUE) +  
   labs(title=paste0("UMAP plot of healthy liver single-cell dataset before metacell transformation", "\n", "(MacParland et al.)"))  +
   theme_classic(base_size = 24) +
   theme(plot.title = element_text(color="black", size=26, face="bold", hjust = 0.5), legend.text=element_text(size=20)) + 
@@ -88,7 +89,6 @@ plot(raw_sc_plot)
 ***
 
 ```{r, message=T, warning=T, fig.width= 15, fig.height=8}
-aggregated<-aggregate(.~cell_type, sobject@meta.data)
 sobject@meta.data %>% dplyr::count(cell_type)
 sobject$metacell_group <- as.character(sobject$cell_type)
 #use predefined genes for cell cycle scoring
@@ -98,7 +98,60 @@ sobject <- CellCycleScoring(sobject, s.features = s.genes, g2m.features = g2m.ge
 sobject@meta.data %>% dplyr::count(cell_type, Phase)
 DimPlot(sobject, reduction = "umap", label = TRUE, repel = TRUE, group.by = c("cell_type", "Phase"))
 #remove hepatic stellate cells due to low number
-sobject<-subset(x = sobject, subset = cell_type!="Hepatic_Stellate_Cells")
+sobject<-subset(x = sobject, subset = cell_type!="Hepatic stellate cells")
+#define the function from the package "scWGCNA"/"hdWGCNA" 
+construct_metacells <- function (seurat_obj, name = "agg", k = 50, reduction = "umap", 
+    assay = "RNA", slot = "data") 
+{
+    reduced_coordinates <- as.data.frame(seurat_obj@reductions[[reduction]]@cell.embeddings)
+    nn_map <- FNN::knn.index(reduced_coordinates, k = (k - 1))
+    row.names(nn_map) <- row.names(reduced_coordinates)
+    nn_map <- cbind(nn_map, seq_len(nrow(nn_map)))
+    good_choices <- seq_len(nrow(nn_map))
+    choice <- sample(seq_len(length(good_choices)), size = 1, 
+        replace = FALSE)
+    chosen <- good_choices[choice]
+    good_choices <- good_choices[good_choices != good_choices[choice]]
+    it <- 0
+    k2 <- k * 2
+    get_shared <- function(other, this_choice) {
+        k2 - length(union(cell_sample[other, ], this_choice))
+    }
+    while (length(good_choices) > 0 & it < 5000) {
+        it <- it + 1
+        choice <- sample(seq_len(length(good_choices)), size = 1, 
+            replace = FALSE)
+        new_chosen <- c(chosen, good_choices[choice])
+        good_choices <- good_choices[good_choices != good_choices[choice]]
+        cell_sample <- nn_map[new_chosen, ]
+        others <- seq_len(nrow(cell_sample) - 1)
+        this_choice <- cell_sample[nrow(cell_sample), ]
+        shared <- sapply(others, get_shared, this_choice = this_choice)
+        if (max(shared) < 0.9 * k) {
+            chosen <- new_chosen
+        }
+    }
+    cell_sample <- nn_map[chosen, ]
+    combs <- combn(nrow(cell_sample), 2)
+    shared <- apply(combs, 2, function(x) {
+        k2 - length(unique(as.vector(cell_sample[x, ])))
+    })
+    message(paste0("Overlap QC metrics:\nCells per bin: ", k, 
+        "\nMaximum shared cells bin-bin: ", max(shared), "\nMean shared cells bin-bin: ", 
+        mean(shared), "\nMedian shared cells bin-bin: ", median(shared)))
+    if (mean(shared)/k > 0.1) 
+        warning("On average, more than 10% of cells are shared between paired bins.")
+    exprs_old <- GetAssayData(seurat_obj, assay = assay, slot = slot)
+    mask <- sapply(seq_len(nrow(cell_sample)), function(x) seq_len(ncol(exprs_old)) %in% 
+        cell_sample[x, , drop = FALSE])
+    mask <- Matrix::Matrix(mask)
+    new_exprs <- (exprs_old %*% mask)/k
+    colnames(new_exprs) <- paste0(name, "_", 1:ncol(new_exprs))
+    rownames(cell_sample) <- paste0(name, "_", 1:ncol(new_exprs))
+    colnames(cell_sample) <- paste0("knn_", 1:ncol(cell_sample))
+    seurat_aggr <- CreateSeuratObject(counts = new_exprs)
+    seurat_aggr
+}
 #construct metacells
 seurat_list <- list()
 for(group in unique(sobject$cell_type)){
@@ -106,7 +159,7 @@ for(group in unique(sobject$cell_type)){
   cur_seurat <- subset(sobject, cell_type == group)
   #cur_seurat <- cur_seurat[genes.keep,]
   k<-ifelse(ncol(cur_seurat@assays$RNA) <300, 8, 20)
-  cur_metacell_seurat <- scWGCNA::construct_metacells(
+  cur_metacell_seurat <- construct_metacells(
     cur_seurat, name=group,
     k=k, reduction='umap',
     assay='RNA', slot='data'

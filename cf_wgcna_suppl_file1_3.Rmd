@@ -75,8 +75,8 @@ dim(cfrna_wgcna_input)
 ***
 
 ```{r power, warning=FALSE, message=FALSE, fig.width= 15, fig.height=8}
-#use 20 threads 
-enableWGCNAThreads(nThreads=8) 
+#use multiple threads 
+enableWGCNAThreads(nThreads=snakemake@threads) 
 #picking soft threshold power
 powers <- c(c(1:10), seq(from = 12, to=20, by=2))
 #calculate the fit to a scale-free network for different powers 
@@ -113,7 +113,7 @@ plot(cfrna_param)
 ```{r modules, message=F, warning=F, fig.width= 15, fig.height=8}
 #based on our results and WGCNS recommendations we choose a power value of 6
 softPower<-6
-enableWGCNAThreads(nThreads=8)
+enableWGCNAThreads(nThreads=snakemake@threads)
 #building an adjacency matrix
 adjacency <- adjacency(cfrna_wgcna_input, power = softPower, type = "unsigned")
 #turn adjacency into topological overlap matrix (TOM) 
@@ -204,7 +204,7 @@ save(cfrna_wgcna_input, cfrna_meta_input, cfmergedcolors, cfrna_param, cfrna_bar
 ***
 
 ```{r cytoscape, message=F, warning=F}
-dir.create("./cfrna/results/cytoscape/")
+dir.create("./cfrna/results/modules/")
 options(stringsAsFactors = FALSE)
 probes <- colnames(cfrna_wgcna_input)
 for (modules in c("cf-blue", "cf-turquoise")) {

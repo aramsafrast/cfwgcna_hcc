@@ -1,0 +1,156 @@
+rule all:
+	"""
+	Main outputs of the workflow
+        """
+	input:
+                "benchmarks"
+
+
+rule cfrna_input:
+        output:
+                "markdown_results/cfrna_input_clean.html"
+        benchmark: 
+                "cfrna_input.txt"
+        script:
+                "cfrna_input_clean.Rmd"
+
+rule cfrna_wgcna_suppl_file1_3:
+        input:
+                "markdown_results/cfrna_input_clean.html"
+        output:
+                "markdown_results/cf_wgcna_suppl_file1_3.html"
+        benchmark: 
+                "cfrna_wgcna.txt"
+        threads: workflow.cores
+        script:
+                "cf_wgcna_suppl_file1_3.Rmd"
+
+rule exorna_input:
+        output:
+                "markdown_results/exorna_input_clean.html"
+        benchmark: 
+                "exorna_input.txt"
+        threads: workflow.cores
+        script:
+                "exorna_input_clean.Rmd"
+
+rule exorna_wgcna_suppl_file_2_4:
+        input:
+                "markdown_results/exorna_input_clean.html"
+        output:
+                "markdown_results/exo_wgcna_suppl_file2_4.html"
+        benchmark: 
+                "exorna_wgcna.txt"
+        threads: workflow.cores
+        script:
+                "exo_wgcna_suppl_file2_4.Rmd"
+
+rule metacells:
+        output:
+                "markdown_results/metacell_construct.html"
+        benchmark: 
+                "metacells.txt"
+        script:
+                "metacell_contruct.Rmd"
+
+rule module_pres_sc:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/exo_wgcna_suppl_file2_4.html",
+                "markdown_results/metacell_construct.html"
+        output:
+                "markdown_results/mp_sc.html"
+        benchmark: 
+                "module_pres_sc.txt"
+        threads: workflow.cores
+        script:
+                "mp_sc.Rmd"
+
+rule fig1:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html"
+        output:
+                "markdown_results/fig1.html"
+        benchmark: 
+                "fig1.txt"
+        script:
+                "fig1.Rmd"
+
+rule fig2_suppl_fig3:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html"
+        output:
+                "markdown_results/fig2_supp.fig3.html"
+        benchmark: 
+                "fig2.txt"
+        script:
+                "fig2_supp.fig3.Rmd"
+
+rule fig3_suppl_fig4:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/exo_wgcna_suppl_file2_4.html"
+        output:
+                "markdown_results/fig3_supp.fig4.html"
+        benchmark: 
+                "fig3.txt"
+        threads: workflow.cores
+        script:
+                "fig3_supp.fig.4.Rmd"
+
+rule fig4:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/metacell_construct.html",
+                "markdown_results/mp_sc.html"
+        output:
+                "markdown_results/fig4.html"
+        benchmark: 
+                "fig4.txt"
+        script:
+                "fig4.Rmd"
+
+rule suppl_fig1_2:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/exo_wgcna_suppl_file2_4.html"
+        output:
+                "markdown_results/supp_fig1_2.html"
+        benchmark: 
+                "suppl_fig1_2.txt"
+        script:
+                "supp_fig1_2.Rmd"
+
+rule suppl_fig5_6:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/exo_wgcna_suppl_file2_4.html",
+                "markdown_results/metacell_construct.html"
+        output:
+                "markdown_results/supp_fig5_6.html"
+        benchmark: 
+                "suppl_fig5_6.txt"
+        script:
+                "supp_fig5_6.Rmd"
+
+rule cleanup:
+        input:
+                "markdown_results/cf_wgcna_suppl_file1_3.html",
+                "markdown_results/exo_wgcna_suppl_file2_4.html",
+                "markdown_results/supp_fig1_2.html",
+                "markdown_results/supp_fig5_6.html",
+                "markdown_results/fig1.html",
+                "markdown_results/fig2_supp.fig3.html",
+                "markdown_results/fig3_supp.fig4.html",
+                "markdown_results/fig4.html"
+        output:
+                directory("benchmarks")
+        shell:
+                """
+                mkdir benchmarks
+                mv *txt benchmarks/
+                rm -f *RData
+                """
+
+
+

@@ -45,7 +45,7 @@ library(DT)
 mkdir -p ./cfrna/data/raw
 wget -q -O - https://ftp.ncbi.nlm.nih.gov/geo/series/GSE142nnn/GSE142987/suppl/GSE142987_sample_count_matrix.txt.gz | gunzip -c > ./cfrna/data/raw/cfrna_countm.txt
 #download the metadata
-wget -q -nv -O ./cfrna/data/raw/cfrna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=SRP239389"
+wget -q -nv -O ./cfrna/data/raw/cfrna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra-db-be/sra-db-be.cgi?rettype=runinfo&term=SRP239389"
 ```
 
 # Sample metadata construction 
@@ -115,7 +115,7 @@ genes<-rownames(cfrna_vst)
 #remove version number
 genes_clean<-gsub("\\..*","",genes)
 #define the dataset to use for conversion
-mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+mart <- useEnsembl(dataset="hsapiens_gene_ensembl", biomart="ensembl", version=106) 
 #get the hgnc symbols of genes
 gene_IDs <- getBM(filters= "ensembl_gene_id", attributes= c("hgnc_symbol", "ensembl_gene_id"), values = genes_clean, mart= mart)
 #convert the matrix to dataframe for easier data wrangling

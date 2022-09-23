@@ -106,25 +106,25 @@ yellow_reactome_plot<-ggplot(yellow_reactome_df, aes(x = GeneRatio, y = fct_reor
 
 ```{r heatmap, message=FALSE, warning=FALSE, fig.height=8}
 #load cell specific presevration staistics 
-load("./scrna/results/cf_mp/Portal_endothelial_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/Portal endothelial cells_statsZ.RData")
 port<-statsZ_all$Zsummary.pres
 load("./scrna/results/cf_mp/Cholangiocytes_statsZ.RData")
 chl<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/Hepatocyte_statsZ.RData")
+load("./scrna/results/cf_mp/Hepatocytes_statsZ.RData")
 hepato<-statsZ_all$Zsummary.pres
 load("./scrna/results/cf_mp/LSECs_statsZ.RData")
 lsec<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/Macrophage_statsZ.RData")
+load("./scrna/results/cf_mp/Macrophages_statsZ.RData")
 macro<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/Mature_B_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/Mature B cells_statsZ.RData")
 b<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/NK-like_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/NK-like cells_statsZ.RData")
 nk<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/T_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/T cells_statsZ.RData")
 t<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/Plasma_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/Plasma cells_statsZ.RData")
 pl<-statsZ_all$Zsummary.pres
-load("./scrna/results/cf_mp/Erythroid_Cells_statsZ.RData")
+load("./scrna/results/cf_mp/Erythroid cells_statsZ.RData")
 er<-statsZ_all$Zsummary.pres
 #merge, clean and plot the data
 cfmp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=er, Cholangiocytes=chl, Plasma_cells=pl)

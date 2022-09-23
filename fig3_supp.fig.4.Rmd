@@ -45,7 +45,7 @@ library(cowplot)
 ***
 
 ```{r cfmp, warning=F, message=F}
-enableWGCNAThreads(nThreads=8) 
+enableWGCNAThreads(nThreads=snakemake@threads) 
 load("./cfrna/results/wgcna_main/cfwgcna.RData")
 load("./exorna/results/wgcna_main/exowgcna.RData")
 setLabels <- c("cfRNA", "exoRNA") 
@@ -131,9 +131,9 @@ ggsave(plot=fig3, "./figures/main_figures/fig3.png", scale=1, units = "mm", widt
 ***
 
 ```{r exomp, warning=F, message=F}
-enableWGCNAThreads(nThreads=8) 
+enableWGCNAThreads(nThreads=snakemake@threads) 
 setLabels <- c("exoRNA", "cfRNA")
-multiExpr <- list(exorRNA = list(data = exorna_wgcna_input), cfRNA = list(data = cfrna_wgcna_input) )
+multiExpr <- list(exoRNA = list(data = exorna_wgcna_input), cfRNA = list(data = cfrna_wgcna_input) )
 multiColor <- list(exoRNA = exomergedcolors)
 mp_exo_cf <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nPermutations = 100, randomSeed = 1, quickCor = 0, maxModuleSize=5500, maxGoldModuleSize=5500, parallelCalculation=T)
 ```
@@ -142,7 +142,6 @@ mp_exo_cf <- modulePreservation(multiExpr, multiColor, referenceNetworks = 1, nP
 ***
 
 ```{r exomp_plot, message=F, warning=F, fig.width= 8, fig.height=5, fig.align='center'}
-#load("./exorna/results/mp_exo_cf/mp_exo_cf.RData")
 #get module size and Zsum connectivity statistics 
 ref <-  1
 test <- 2

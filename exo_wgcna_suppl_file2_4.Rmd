@@ -75,7 +75,7 @@ dim(exorna_wgcna_input)
 
 ```{r power, warning=FALSE, message=FALSE, fig.width= 15, fig.height=8, fig.align='center'}
 #use 8 threads 
-enableWGCNAThreads(nThreads=8) 
+enableWGCNAThreads(nThreads=snakemake@threads) 
 #picking soft threshold power
 powers <- c(c(1:10), seq(from = 12, to=20, by=2))
 #calculate the fit to a scale-free network for different powers 
@@ -208,6 +208,7 @@ for (modules in module) {
   df_temp <- data.frame(genes=modProbes, module = modules, connectivity=IMConn)
   dataset_names[[m]] <- df_temp %>% top_n(., 50, connectivity) %>% arrange(., desc(connectivity))
 }
+dir.create("./suppl_files/")
 write.xlsx(dataset_names, sheetName = module, file = './suppl_files/supplementary_file2.xlsx') 
 ```
 

@@ -44,7 +44,6 @@ load("./cfrna/results/wgcna_main/cfwgcna.RData")
 load("./exorna/results/wgcna_main/exowgcna.RData")
 supp_fig2<-ggdraw() + draw_plot(cfrna_bar, x=0, y=0, width = .5, height=1) + draw_plot(exorna_bar, x=0.5, y=0, width = .5, height=1) +  draw_plot_label(label = c("A", "B"), size = 28, x = c(0, 0.5), y = c(1, 1), family = "Arial") 
 plot(supp_fig2)
-dir.create("./plots/supp_plots/", recursive = T)
 #save
 ggsave(plot=supp_fig2, file="./figures/supp_figures/supp_fig2.png", units = "mm", device = ragg::agg_png, height=80, width=180, scaling = 0.3, limitsize = FALSE)
 ```

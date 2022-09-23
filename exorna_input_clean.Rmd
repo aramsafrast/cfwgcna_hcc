@@ -21,6 +21,7 @@ output:
 
 ```{r global_options, echo = F}
 knitr::opts_chunk$set(fig.path='markdown_results/')
+Sys.setenv(threads=snakemake@threads)
 ```
 
 # load libraries
@@ -39,13 +40,9 @@ library(DT)
 
 #  Download and map the data (GSE100207)
 * resource/time intensive
-* hence by default won't run
-* ready-made count matrix already provided
-* to run this code chunk set eval=TRUE
-* >120G disk space needed locally
 ***
 
-```{bash prep, message=F, warning=F, eval=FALSE}
+```{bash prep, message=F, warning=F}
 #download the exoRNA samples
 mkdir -p ./exorna/data/raw/fastq
 mkdir -p ./exorna/data/raw/map
@@ -56,13 +53,15 @@ wget -q -O - http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38
 #get human genome gtf annotation
 wget -q -O - http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.primary_assembly.annotation.gtf.gz | gunzip -c > ./exorna/data/raw/hs_genome/hg38.gtf
 #make STAR genome index
-STAR --runThreadN 8 --runMode genomeGenerate --genomeDir ./exorna/data/raw/hs_genome/star/ --genomeFastaFiles ./exorna/data/raw/hs_genome/hg38.fa --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf
-for f in {516..536} ; do fasterq-dump SRR5712"$f" -O ./exorna/data/raw -t ./exorna/data/raw ; gzip *fastq ; done
+STAR --runThreadN $threads --runMode genomeGenerate --genomeDir ./exorna/data/raw/hs_genome/star/ --genomeFastaFiles ./exorna/data/raw/hs_genome/hg38.fa --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf
+#download raw sequencing files
+for f in {516..536} ; do fasterq-dump SRR5712"$f" -O ./exorna/data/raw/fastq -t ./exorna/data/raw/fastq -e $threads ; pigz -p $threads ./exorna/data/raw/fastq/*fastq ; done
 #map with STAR
-for f in {516..536} ; do STAR --runMode alignReads --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf --readFilesIn ./exorna/data/raw/fastq/SRR5712"$f"_1.fastq.gz ./exorna/data/raw/fastq/SRR5712"$f"_2.fastq.gz --readFilesCommand "gunzip -c" --outSAMtype BAM SortedByCoordinate --genomeDir  ./exorna/data/raw/hs_genome/hg38.fa --outFileNamePrefix ./exorna/data/raw/map/"$f" --runThreadN 8 : done
-featureCounts -T 8 -p -s 1 -a ./exorna/data/raw/hs_genome/hg38.gtf -o ./exorna/data/raw/exorna_countm.txt ./exorna/data/raw/map/*bam
+for f in {516..536} ; do STAR --runMode alignReads --sjdbGTFfile ./exorna/data/raw/hs_genome/hg38.gtf --readFilesIn ./exorna/data/raw/fastq/SRR5712"$f"_1.fastq.gz ./exorna/data/raw/fastq/SRR5712"$f"_2.fastq.gz --readFilesCommand "gunzip -c" --outSAMtype BAM SortedByCoordinate --genomeDir  ./exorna/data/raw/hs_genome/star --outFileNamePrefix ./exorna/data/raw/map/"$f" --runThreadN $threads; done
+#generate gene count table 
+featureCounts -T $threads -p -s 1 -a ./exorna/data/raw/hs_genome/hg38.gtf -o ./exorna/data/raw/exorna_countm.txt ./exorna/data/raw/map/*bam
 #download the metadata
-wget -q -nv -O ./exorna/data/raw/exorna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=SRP109668"
+wget -q -nv -O ./exorna/data/raw/exorna_metadata_init.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra-db-be/sra-db-be.cgi?rettype=runinfo&term=SRP109668"
 ```
 
 # Sample metadata construction 
@@ -128,7 +127,7 @@ genes<-rownames(exorna_vst)
 #remove version number
 genes_clean<-gsub("\\..*","",genes)
 #define the dataset to use for conversion
-mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+mart <- useEnsembl(dataset="hsapiens_gene_ensembl", biomart="ensembl", version=105) 
 #get the hgnc symbols of genes
 gene_IDs <- getBM(filters= "ensembl_gene_id", attributes= c("hgnc_symbol", "ensembl_gene_id"), values = genes_clean, mart= mart)
 #convert the matrix to dataframe for easier data wrangling

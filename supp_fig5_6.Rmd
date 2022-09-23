@@ -125,7 +125,6 @@ purple_wp_plot<-ggplot(purple_wp_df, aes(x = GeneRatio, y = fct_reorder(Descript
 #combine plots
 supp_fig5<-ggdraw() + draw_plot(yellow_kegg_plot, x=0, y=0.5, width = .5, height=.5) + draw_plot(yellow_wp_plot, x=0.5, y=0.5, width = .5, height=.5) + draw_plot(purple_kegg_plot, x=0, y=0, width = .5, height=.5) + draw_plot(purple_wp_plot, x=0.5, y=0, width = .5, height=.5) +  draw_plot_label(label = c("A", "B", "C", "D"), size = 42, x = c(0, 0.5, 0, 0.5), y = c(1, 1, 0.5, 0.5)) 
 plot(supp_fig5)
-dir.create("./cfrna/plots/supp_plots/")
 #save
 ggsave(plot=supp_fig5, file="./figures/supp_figures/supp_fig5.png", units = "mm", device = ragg::agg_png, height=150, width=180, scaling = 0.3, limitsize = FALSE)
 ```
@@ -199,25 +198,25 @@ brown_wp_plot<-ggplot(brown_wp_df, aes(x = GeneRatio, y = fct_reorder(Descriptio
 
 ```{r paths1, message=FALSE, warning=FALSE, fig.height=8}
 #load cell specific presevration staistics 
-load("./scrna/results/exo_mp/Portal_endothelial_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/Portal endothelial cells_statsZ.RData")
 port<-statsZ_all$Zsummary.pres
 load("./scrna/results/exo_mp/Cholangiocytes_statsZ.RData")
 chl<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/Hepatocyte_statsZ.RData")
+load("./scrna/results/exo_mp/Hepatocytes_statsZ.RData")
 hepato<-statsZ_all$Zsummary.pres
 load("./scrna/results/exo_mp/LSECs_statsZ.RData")
 lsec<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/Macrophage_statsZ.RData")
+load("./scrna/results/exo_mp/Macrophages_statsZ.RData")
 macro<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/Mature_B_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/Mature B cells_statsZ.RData")
 b<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/NK-like_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/NK-like cells_statsZ.RData")
 nk<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/T_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/T cells_statsZ.RData")
 t<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/Plasma_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/Plasma cells_statsZ.RData")
 p<-statsZ_all$Zsummary.pres
-load("./scrna/results/exo_mp/Erythroid_Cells_statsZ.RData")
+load("./scrna/results/exo_mp/Erythroid cells_statsZ.RData")
 e<-statsZ_all$Zsummary.pres
 #merge, clean and plot the data
 exomp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=e, Cholangiocytes=chl, Plasma_cells=p)
@@ -270,7 +269,6 @@ supp_fig6<-ggdraw() +
   draw_plot(supp_fig6_1, x=0, y=0.33, width=1, height = .67) + draw_plot(brown_kegg_plot, x=0, y=0, width=.5, height = .33) + draw_plot(brown_wp_plot, x=.5, y=0, width=.5, height = .33) + 
   draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 38, x = c(0, 0, 0.5, 0, 0.5), y = c(1, 0.67, 0.67, 0.33, 0.33), family = "Arial") 
 plot(supp_fig6)
-#dir.create("/.scrna/plots/main_plots/")
 ggsave(plot=supp_fig6, file="./figures/supp_figures/supp_fig6.png", units = "mm", device = ragg::agg_png, height=220, width=180, scaling = 0.3, limitsize = FALSE)
 ```
 
