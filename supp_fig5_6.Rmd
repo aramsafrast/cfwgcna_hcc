@@ -219,10 +219,10 @@ load("./scrna/results/exo_mp/Erythroid cells_statsZ.RData")
 e<-statsZ_all$Zsummary.pres
 #merge, clean and plot the data
 exomp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=e, Cholangiocytes=chl, Plasma_cells=p)
-exomp_df$module<-paste0("exo-", "", exomp_df$module)
+#exomp_df$module<-paste0("exo-", "", exomp_df$module)
 rownames(exomp_df)<-exomp_df$module 
 exomp_df<-exomp_df  %>%  
-  filter(!module %in% c("exo-gold", "exo-grey")) %>% 
+  filter(!module %in% c("gold", "grey")) %>% 
   dplyr::select(-module)
 exomp_df$modules<-rownames(exomp_df)
 exomp_long<-exomp_df %>%  

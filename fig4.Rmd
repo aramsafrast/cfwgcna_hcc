@@ -127,10 +127,10 @@ load("./scrna/results/cf_mp/Erythroid cells_statsZ.RData")
 er<-statsZ_all$Zsummary.pres
 #merge, clean and plot the data
 cfmp_df<-data.frame(module=rownames(statsZ_all), Portal=port, Hepatocytes=hepato, LSECs=lsec, Macrophages=macro, b_cells=b, t_cells=t, NK_cells=nk, Erythroid=er, Cholangiocytes=chl, Plasma_cells=pl)
-cfmp_df$module<-paste0("cf-", "", cfmp_df$module)
+#cfmp_df$module<-paste0("cf-", "", cfmp_df$module)
 rownames(cfmp_df)<-cfmp_df$module 
 cfmp_df<-cfmp_df  %>%  
-  filter(!module %in% c("cf-gold", "cf-grey")) %>% 
+  filter(!module %in% c("gold", "grey")) %>% 
   dplyr::select(-module)
 cfmp_df$modules<-rownames(cfmp_df)
 cfmp_long<-cfmp_df %>%  
